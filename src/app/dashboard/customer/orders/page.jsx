@@ -22,6 +22,9 @@ export default function CustomerOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const tabs = [
     { id: "ALL", label: "All Orders", icon: FiPackage },
@@ -33,11 +36,12 @@ export default function CustomerOrdersPage() {
   ];
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(1);
   }, [activeTab]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = 1) => {
     setLoading(true);
+    if (page === 1) setIsInitializing(true);
     try {
       const token = localStorage.getItem("authToken");
 
@@ -46,8 +50,8 @@ export default function CustomerOrdersPage() {
         return;
       }
 
-      const statusParam = activeTab !== "ALL" ? `?status=${activeTab}` : "";
-      const response = await fetch(`/api/customer/orders${statusParam}`, {
+      const statusParam = activeTab !== "ALL" ? `&status=${activeTab}` : "";
+      const response = await fetch(`/api/customer/orders?page=${page}&limit=10${statusParam}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -57,6 +61,8 @@ export default function CustomerOrdersPage() {
 
       if (data.success) {
         setOrders(data.orders || []);
+        setTotalPages(data.pages || 1);
+        setCurrentPage(data.page || 1);
       } else {
         toast.error(data.message || "Failed to load orders");
       }
@@ -65,6 +71,7 @@ export default function CustomerOrdersPage() {
       toast.error("Failed to load orders");
     } finally {
       setLoading(false);
+      setIsInitializing(false);
     }
   };
 
@@ -101,12 +108,18 @@ export default function CustomerOrdersPage() {
     order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  if (isInitializing) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading orders...</p>
+      <div className="min-h-screen">
+        <div className="mb-6">
+          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
+          <div className="h-4 w-64 bg-gray-100 rounded animate-pulse"></div>
+        </div>
+        <div className="mb-6 h-12 bg-gray-50 rounded-xl animate-pulse"></div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-xl h-48 border border-gray-100 animate-pulse"></div>
+          ))}
         </div>
       </div>
     );
@@ -141,14 +154,13 @@ export default function CustomerOrdersPage() {
         <div className="flex gap-2 min-w-max pb-2 items-center justify-center">
           {tabs.map((tab) => {
             const Icon = tab.icon;
-            const count = tab.id === "ALL" 
-              ? orders.length 
-              : orders.filter(o => o.orderStatus === tab.id).length;
-
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setCurrentPage(1);
+                }}
                 className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${
                   activeTab === tab.id
                     ? "bg-orange-500 text-white shadow-lg"
@@ -157,15 +169,6 @@ export default function CustomerOrdersPage() {
               >
                 <Icon className="w-4 h-4" />
                 <span className="text-xs">{tab.label}</span>
-                {count > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                    activeTab === tab.id 
-                      ? "bg-white text-orange-500" 
-                      : "bg-gray-100 text-gray-700"
-                  }`}>
-                    {count}
-                  </span>
-                )}
               </button>
             );
           })}
@@ -284,6 +287,58 @@ export default function CustomerOrdersPage() {
               </div>
             </div>
           ))}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-6">
+              <button
+                onClick={() => fetchOrders(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+                className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Previous
+              </button>
+              <div className="flex items-center gap-2">
+                {[...Array(totalPages)].map((_, i) => {
+                  const pageNum = i + 1;
+                  // Only show current page, first, last, and relative pages if totalPages > 5
+                  if (
+                    totalPages <= 5 ||
+                    pageNum === 1 ||
+                    pageNum === totalPages ||
+                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => fetchOrders(pageNum)}
+                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                          currentPage === pageNum
+                            ? "bg-orange-500 text-white"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  } else if (
+                    (pageNum === 2 && currentPage > 3) ||
+                    (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                  ) {
+                    return <span key={pageNum} className="text-gray-400">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+              <button
+                onClick={() => fetchOrders(currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+                className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

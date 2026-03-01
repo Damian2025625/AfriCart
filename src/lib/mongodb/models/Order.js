@@ -243,6 +243,7 @@ const orderSchema = new mongoose.Schema({
 
 // ✅ CRITICAL INDEXES
 orderSchema.index({ customerId: 1, createdAt: -1 });
+orderSchema.index({ customerId: 1, isMasterOrder: 1, createdAt: -1 });
 orderSchema.index({ vendorId: 1, createdAt: -1 });
 orderSchema.index({ orderNumber: 1 });
 orderSchema.index({ orderStatus: 1 });
