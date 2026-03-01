@@ -1,0 +1,2117 @@
+[
+  {
+    "id": 879,
+    "code": "40195",
+    "name": "78 Finance Company Ltd",
+    "slug": "78-finance-company-ltd-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 707,
+    "code": "090629",
+    "name": "9jaPay Microfinance Bank",
+    "slug": "9japay-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 302,
+    "code": "120001",
+    "name": "9mobile 9Payment Service Bank",
+    "slug": "9mobile-9payment-service-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 174,
+    "code": "404",
+    "name": "Abbey Mortgage Bank",
+    "slug": "abbey-mortgage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 188,
+    "code": "51204",
+    "name": "Above Only MFB",
+    "slug": "above-only-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 627,
+    "code": "51312",
+    "name": "Abulesoro MFB",
+    "slug": "abulesoro-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 1,
+    "code": "044",
+    "name": "Access Bank",
+    "slug": "access-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 3,
+    "code": "063",
+    "name": "Access Bank (Diamond)",
+    "slug": "access-bank-diamond",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 495,
+    "code": "602",
+    "name": "Accion Microfinance Bank",
+    "slug": "accion-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 687,
+    "code": "50315",
+    "name": "Aella MFB",
+    "slug": "aella-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 780,
+    "code": "90077",
+    "name": "AG Mortgage Bank",
+    "slug": "ag-mortgage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 676,
+    "code": "50036",
+    "name": "Ahmadu Bello University Microfinance Bank",
+    "slug": "ahmadu-bello-university-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 300,
+    "code": "120004",
+    "name": "Airtel Smartcash PSB",
+    "slug": "airtel-smartcash-psb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 698,
+    "code": "51336",
+    "name": "AKU Microfinance Bank",
+    "slug": "aku-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 497,
+    "code": "090561",
+    "name": "Akuchukwu Microfinance Bank Limited",
+    "slug": "akuchukwu-microfinance-bank-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 872,
+    "code": "50055",
+    "name": "Al-Barakah Microfinance Bank",
+    "slug": "al-barakah-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 27,
+    "code": "035A",
+    "name": "ALAT by WEMA",
+    "slug": "alat-by-wema",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 857,
+    "code": "108",
+    "name": "Alpha Morgan Bank",
+    "slug": "alpha-morgan",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 790,
+    "code": "000304",
+    "name": "Alternative bank",
+    "slug": "the-alternative-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 179,
+    "code": "50926",
+    "name": "Amju Unique MFB",
+    "slug": "amju-unique-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 614,
+    "code": "50083",
+    "name": "Aramoko MFB",
+    "slug": "aramoko-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 63,
+    "code": "401",
+    "name": "ASO Savings and Loans",
+    "slug": "asosavings",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 793,
+    "code": "50092",
+    "name": "Assets Microfinance Bank",
+    "slug": "assets-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 297,
+    "code": "MFB50094",
+    "name": "Astrapolaris MFB LTD",
+    "slug": "astrapolaris-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 759,
+    "code": "090478",
+    "name": "AVUENEGBE MICROFINANCE BANK",
+    "slug": "avuenegbe-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 778,
+    "code": "51351",
+    "name": "AWACASH MICROFINANCE BANK",
+    "slug": "awacash-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 796,
+    "code": "51337",
+    "name": "AZTEC MICROFINANCE BANK LIMITED",
+    "slug": "aztec-microfinance-bank-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 181,
+    "code": "51229",
+    "name": "Bainescredit MFB",
+    "slug": "bainescredit-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 686,
+    "code": "50117",
+    "name": "Banc Corp Microfinance Bank",
+    "slug": "banc-corp-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 880,
+    "code": "11072",
+    "name": "Bank78 Microfinance Bank",
+    "slug": "bank78-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 832,
+    "code": "50572",
+    "name": "BANKIT MICROFINANCE BANK LTD",
+    "slug": "bankit-microfinance-bank-ltd-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 689,
+    "code": "51341",
+    "name": "BANKLY MFB",
+    "slug": "ampersand-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 777,
+    "code": "MFB50992",
+    "name": "Baobab Microfinance Bank",
+    "slug": "baobab-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 783,
+    "code": "51100",
+    "name": "BellBank Microfinance Bank",
+    "slug": "bellbank-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 589,
+    "code": "51267",
+    "name": "Benysta Microfinance Bank Limited",
+    "slug": "benysta-microfinance-bank-limited",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 886,
+    "code": "50122",
+    "name": "Berachah Microfinance Bank Ltd.",
+    "slug": "berachah-microfinance-bank-ltd-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 771,
+    "code": "50123",
+    "name": "Beststar Microfinance Bank",
+    "slug": "beststar-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 816,
+    "code": "50725",
+    "name": "BOLD MFB",
+    "slug": "bold-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 815,
+    "code": "650",
+    "name": "Bosak Microfinance Bank",
+    "slug": "bosak-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 108,
+    "code": "50931",
+    "name": "Bowen Microfinance Bank",
+    "slug": "bowen-microfinance-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 697,
+    "code": "FC40163",
+    "name": "Branch International Finance Company Limited",
+    "slug": "branch",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 867,
+    "code": "90070",
+    "name": "Brent Mortgage bank",
+    "slug": "brent-mortgage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 817,
+    "code": "50645",
+    "name": "BuyPower MFB",
+    "slug": "buypower-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 82,
+    "code": "565",
+    "name": "Carbon",
+    "slug": "carbon",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 781,
+    "code": "51353",
+    "name": "Cashbridge Microfinance Bank Limited",
+    "slug": "cashbridge-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 692,
+    "code": "865",
+    "name": "CASHCONNECT MFB",
+    "slug": "cashconnect-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 74,
+    "code": "50823",
+    "name": "CEMCS Microfinance Bank",
+    "slug": "cemcs-microfinance-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 284,
+    "code": "50171",
+    "name": "Chanelle Microfinance Bank Limited",
+    "slug": "chanelle-microfinance-bank-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 704,
+    "code": "312",
+    "name": "Chikum Microfinance bank",
+    "slug": "chikum-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 2,
+    "code": "023",
+    "name": "Citibank Nigeria",
+    "slug": "citibank-nigeria",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 755,
+    "code": "070027",
+    "name": "CITYCODE MORTAGE BANK",
+    "slug": "citycode-mortage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 691,
+    "code": "50910",
+    "name": "Consumer Microfinance Bank",
+    "slug": "consumer-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 874,
+    "code": "51458",
+    "name": "Cool Microfinance Bank Limited",
+    "slug": "cool-microfinance-bank-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 895,
+    "code": "90089",
+    "name": "Cooperative Mortgage Bank",
+    "slug": "cooperative-mortgage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 283,
+    "code": "50204",
+    "name": "Corestep MFB",
+    "slug": "corestep-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 173,
+    "code": "559",
+    "name": "Coronation Merchant Bank",
+    "slug": "coronation-merchant-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 694,
+    "code": "FC40128",
+    "name": "County Finance Limited",
+    "slug": "county-finance-limited",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 829,
+    "code": "40119",
+    "name": "Credit Direct Limited",
+    "slug": "credit-direct-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 366,
+    "code": "51297",
+    "name": "Crescent MFB",
+    "slug": "crescent-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 634,
+    "code": "090560",
+    "name": "Crust Microfinance Bank",
+    "slug": "crust-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 820,
+    "code": "50216",
+    "name": "CRUTECH MICROFINANCE BANK LTD",
+    "slug": "crutech-microfinance-bank-ltd-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 865,
+    "code": "51368",
+    "name": "Dash Microfinance Bank",
+    "slug": "dash-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 738,
+    "code": "51334",
+    "name": "Davenport MICROFINANCE BANK",
+    "slug": "davenport-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 860,
+    "code": "51450",
+    "name": "Dillon Microfinance Bank",
+    "slug": "dillon-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 637,
+    "code": "50162",
+    "name": "Dot Microfinance Bank",
+    "slug": "dot-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 821,
+    "code": "50922",
+    "name": "EBSU Microfinance Bank",
+    "slug": "ebsu-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 4,
+    "code": "050",
+    "name": "Ecobank Nigeria",
+    "slug": "ecobank-nigeria",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 628,
+    "code": "50263",
+    "name": "Ekimogun MFB",
+    "slug": "ekimogun-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 64,
+    "code": "098",
+    "name": "Ekondo Microfinance Bank",
+    "slug": "ekondo-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 761,
+    "code": "090678",
+    "name": "EXCEL FINANCE BANK",
+    "slug": "excel-finance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 167,
+    "code": "50126",
+    "name": "Eyowo",
+    "slug": "eyowo",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 677,
+    "code": "51318",
+    "name": "Fairmoney Microfinance Bank",
+    "slug": "fairmoney-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 767,
+    "code": "50298",
+    "name": "Fedeth MFB",
+    "slug": "fedeth-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 6,
+    "code": "070",
+    "name": "Fidelity Bank",
+    "slug": "fidelity-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 177,
+    "code": "51314",
+    "name": "Firmus MFB",
+    "slug": "firmus-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 7,
+    "code": "011",
+    "name": "First Bank of Nigeria",
+    "slug": "first-bank-of-nigeria",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 8,
+    "code": "214",
+    "name": "First City Monument Bank",
+    "slug": "first-city-monument-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 893,
+    "code": "50934",
+    "name": "First Option MFB",
+    "slug": "first-option-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 757,
+    "code": "090164",
+    "name": "FIRST ROYAL MICROFINANCE BANK",
+    "slug": "first-royal-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 812,
+    "code": "51333",
+    "name": "FIRSTMIDAS MFB",
+    "slug": "firstmidas-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 682,
+    "code": "413",
+    "name": "FirstTrust Mortgage Bank Nigeria",
+    "slug": "firsttrust-mortgage-bank-nigeria-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 882,
+    "code": "D53",
+    "name": "Fortress MFB",
+    "slug": "fortress-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 112,
+    "code": "501",
+    "name": "FSDH Merchant Bank Limited",
+    "slug": "fsdh-merchant-bank-limited",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 716,
+    "code": "832",
+    "name": "FUTMINNA MICROFINANCE BANK",
+    "slug": "futminna-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 794,
+    "code": "MFB51093",
+    "name": "Garun Mallam MFB",
+    "slug": "garun-mallam-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 287,
+    "code": "812",
+    "name": "Gateway Mortgage Bank LTD",
+    "slug": "gateway-mortgage-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 70,
+    "code": "00103",
+    "name": "Globus Bank",
+    "slug": "globus-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 769,
+    "code": "090574",
+    "name": "Goldman MFB",
+    "slug": "goldman-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 183,
+    "code": "100022",
+    "name": "GoMoney",
+    "slug": "gomoney",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 756,
+    "code": "090664",
+    "name": "GOOD SHEPHERD MICROFINANCE BANK",
+    "slug": "good-shepherd-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 635,
+    "code": "50739",
+    "name": "Goodnews Microfinance Bank",
+    "slug": "goodnews-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 633,
+    "code": "562",
+    "name": "Greenwich Merchant Bank",
+    "slug": "greenwich-merchant-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 789,
+    "code": "51276",
+    "name": "GROOMING MICROFINANCE BANK",
+    "slug": "grooming-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 824,
+    "code": "50368",
+    "name": "GTI MFB",
+    "slug": "gti-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 9,
+    "code": "058",
+    "name": "Guaranty Trust Bank",
+    "slug": "guaranty-trust-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 111,
+    "code": "51251",
+    "name": "Hackman Microfinance Bank",
+    "slug": "hackman-microfinance-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 81,
+    "code": "50383",
+    "name": "Hasal Microfinance Bank",
+    "slug": "hasal-microfinance-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 877,
+    "code": "51364",
+    "name": "Hayat Trust MFB",
+    "slug": "hayat-trust-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 301,
+    "code": "120002",
+    "name": "HopePSB",
+    "slug": "hopepsb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 75,
+    "code": "51211",
+    "name": "IBANK Microfinance Bank",
+    "slug": "IBANK-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 828,
+    "code": "51279",
+    "name": "IBBU MFB",
+    "slug": "ibbu-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 168,
+    "code": "51244",
+    "name": "Ibile Microfinance Bank",
+    "slug": "ibile-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 859,
+    "code": "90012",
+    "name": "Ibom Mortgage Bank",
+    "slug": "ibom-mortgage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 615,
+    "code": "50439",
+    "name": "Ikoyi Osun MFB",
+    "slug": "ikoyi-osun-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 636,
+    "code": "50442",
+    "name": "Ilaro Poly Microfinance Bank",
+    "slug": "ilaro-poly-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 703,
+    "code": "50453",
+    "name": "Imowo MFB",
+    "slug": "imowo-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 754,
+    "code": "415",
+    "name": "IMPERIAL HOMES MORTAGE BANK",
+    "slug": "imperial-homes-mortage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 858,
+    "code": "51392",
+    "name": "INDULGE MFB",
+    "slug": "indulge-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 892,
+    "code": "51462",
+    "name": "INEBA GOGO MFB",
+    "slug": "ineba-gogo-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 172,
+    "code": "50457",
+    "name": "Infinity MFB",
+    "slug": "infinity-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 822,
+    "code": "070016",
+    "name": "Infinity trust  Mortgage Bank",
+    "slug": "infinity-trust-mortgage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 787,
+    "code": "090701",
+    "name": "ISUA MFB",
+    "slug": "isua-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 22,
+    "code": "301",
+    "name": "Jaiz Bank",
+    "slug": "jaiz-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 187,
+    "code": "50502",
+    "name": "Kadpoly MFB",
+    "slug": "kadpoly-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 768,
+    "code": "51308",
+    "name": "KANOPOLY MFB",
+    "slug": "kanopoly-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 878,
+    "code": "5129",
+    "name": "Kayvee Microfinance Bank",
+    "slug": "kayvee-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 894,
+    "code": "90028",
+    "name": "Kebbi Homes Savings and Loans Limited",
+    "slug": "kebbi-homes-savings-and-loans-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 11,
+    "code": "082",
+    "name": "Keystone Bank",
+    "slug": "keystone-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 810,
+    "code": "899",
+    "name": "Kolomoni MFB",
+    "slug": "kolomoni-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 784,
+    "code": "100025",
+    "name": "KONGAPAY (Kongapay Technologies Limited)(formerly Zinternet)",
+    "slug": "kongapay-tech-ltd",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 184,
+    "code": "50200",
+    "name": "Kredi Money MFB LTD",
+    "slug": "kredi-money-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 67,
+    "code": "50211",
+    "name": "Kuda Bank",
+    "slug": "kuda-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 109,
+    "code": "90052",
+    "name": "Lagos Building Investment Company Plc.",
+    "slug": "lbic-plc",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 523,
+    "code": "090420",
+    "name": "Letshego Microfinance Bank",
+    "slug": "letshego-microfinance-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 180,
+    "code": "50549",
+    "name": "Links MFB",
+    "slug": "links-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 296,
+    "code": "031",
+    "name": "Living Trust Mortgage Bank",
+    "slug": "living-trust-mortgage-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 753,
+    "code": "50491",
+    "name": "LOMA MFB",
+    "slug": "loma-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 233,
+    "code": "303",
+    "name": "Lotus Bank",
+    "slug": "lotus-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 873,
+    "code": "51444",
+    "name": "Maal MFB",
+    "slug": "maal-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 764,
+    "code": "090171",
+    "name": "MAINSTREET MICROFINANCE BANK",
+    "slug": "mainstreet-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 175,
+    "code": "50563",
+    "name": "Mayfair MFB",
+    "slug": "mayfair-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 896,
+    "code": "90003",
+    "name": "Mayfresh Mortgage Bank",
+    "slug": "mayfresh-mortgage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 887,
+    "code": "50570",
+    "name": "Mega Microfinance Bank",
+    "slug": "mega-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 178,
+    "code": "50304",
+    "name": "Mint MFB",
+    "slug": "mint-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 875,
+    "code": "09",
+    "name": "MINT-FINEX MFB",
+    "slug": "mint-finex-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 714,
+    "code": "946",
+    "name": "Money Master PSB",
+    "slug": "money-master-psb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 688,
+    "code": "50515",
+    "name": "Moniepoint MFB",
+    "slug": "moniepoint-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 303,
+    "code": "120003",
+    "name": "MTN Momo PSB",
+    "slug": "mtn-momo-psb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 739,
+    "code": "090190",
+    "name": "MUTUAL BENEFITS MICROFINANCE BANK",
+    "slug": "mutual-benefits-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 758,
+    "code": "090679",
+    "name": "NDCC MICROFINANCE BANK",
+    "slug": "ndcc-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 776,
+    "code": "51361",
+    "name": "NET MICROFINANCE BANK",
+    "slug": "net-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 774,
+    "code": "51142",
+    "name": "Nigerian Navy Microfinance Bank Limited",
+    "slug": "nigerian-navy-microfinance-bank-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 883,
+    "code": "51304",
+    "name": "NIRSAL MICROFINANCE",
+    "slug": "nirsal-microfinance-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 795,
+    "code": "50072",
+    "name": "Nombank MFB",
+    "slug": "nombank-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 801,
+    "code": "561",
+    "name": "NOVA BANK",
+    "slug": "nova-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 830,
+    "code": "51371",
+    "name": "Novus MFB",
+    "slug": "novus-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 715,
+    "code": "50629",
+    "name": "NPF MICROFINANCE BANK",
+    "slug": "npf-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 825,
+    "code": "51261",
+    "name": "NSUK MICROFINANACE BANK",
+    "slug": "nsuk-microfinanace-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 863,
+    "code": "50689",
+    "name": "Olabisi Onabanjo University Microfinance Bank",
+    "slug": "olabisi-onabanjo-university-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 802,
+    "code": "50697",
+    "name": "OLUCHUKWU MICROFINANCE BANK LTD",
+    "slug": "oluchukwu-microfinance-bank-ltd-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 171,
+    "code": "999992",
+    "name": "OPay Digital Services Limited (OPay)",
+    "slug": "paycom",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 699,
+    "code": "107",
+    "name": "Optimus Bank Limited",
+    "slug": "optimus-bank-ltd",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 185,
+    "code": "100002",
+    "name": "Paga",
+    "slug": "paga",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 169,
+    "code": "999991",
+    "name": "PalmPay",
+    "slug": "palmpay",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 26,
+    "code": "104",
+    "name": "Parallex Bank",
+    "slug": "parallex-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 110,
+    "code": "311",
+    "name": "Parkway - ReadyCash",
+    "slug": "parkway-ready-cash",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 763,
+    "code": "090680",
+    "name": "PATHFINDER MICROFINANCE BANK LIMITED",
+    "slug": "pathfinder-microfinance-bank-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 884,
+    "code": "51457",
+    "name": "Paystack MFB",
+    "slug": "paystack-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 629,
+    "code": "100039",
+    "name": "Paystack-Titan",
+    "slug": "titan-paystack",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 693,
+    "code": "50743",
+    "name": "Peace Microfinance Bank",
+    "slug": "peace-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 775,
+    "code": "51226",
+    "name": "PECANTRUST MICROFINANCE BANK LIMITED",
+    "slug": "pecantrust-microfinance-bank-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 683,
+    "code": "51146",
+    "name": "Personal Trust MFB",
+    "slug": "personal-trust-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 170,
+    "code": "50746",
+    "name": "Petra Mircofinance Bank Plc",
+    "slug": "petra-microfinance-bank-plc",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 831,
+    "code": "MFB51452",
+    "name": "Pettysave MFB",
+    "slug": "pettysave-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 762,
+    "code": "050021",
+    "name": "PFI FINANCE COMPANY LIMITED",
+    "slug": "pfi-finance-company-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 705,
+    "code": "268",
+    "name": "Platinum Mortgage Bank",
+    "slug": "platinum-mortgage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 770,
+    "code": "00716",
+    "name": "Pocket App",
+    "slug": "pocket",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 13,
+    "code": "076",
+    "name": "Polaris Bank",
+    "slug": "polaris-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 626,
+    "code": "50864",
+    "name": "Polyunwana MFB",
+    "slug": "polyunwana-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 304,
+    "code": "105",
+    "name": "PremiumTrust Bank",
+    "slug": "premiumtrust-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 792,
+    "code": "50739",
+    "name": "Prospa Capital Microfinance Bank",
+    "slug": "prospa-capital-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 760,
+    "code": "050023",
+    "name": "PROSPERIS FINANCE LIMITED",
+    "slug": "prosperis-finance-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 25,
+    "code": "101",
+    "name": "Providus Bank",
+    "slug": "providus-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 232,
+    "code": "51293",
+    "name": "QuickFund MFB",
+    "slug": "quickfund-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 176,
+    "code": "502",
+    "name": "Rand Merchant Bank",
+    "slug": "rand-merchant-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 766,
+    "code": "090496",
+    "name": "RANDALPHA MICROFINANCE BANK",
+    "slug": "randalpha-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 295,
+    "code": "90067",
+    "name": "Refuge Mortgage Bank",
+    "slug": "refuge-mortgage-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 773,
+    "code": "50761",
+    "name": "REHOBOTH MICROFINANCE BANK",
+    "slug": "rehoboth-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 710,
+    "code": "50994",
+    "name": "Rephidim Microfinance Bank",
+    "slug": "rephidim",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 885,
+    "code": "51375",
+    "name": "Retrust Mfb",
+    "slug": "retrust-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 700,
+    "code": "51286",
+    "name": "Rigo Microfinance Bank Limited",
+    "slug": "rigo-microfinance-bank-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 679,
+    "code": "50767",
+    "name": "ROCKSHIELD MICROFINANCE BANK",
+    "slug": "rockshield-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 69,
+    "code": "125",
+    "name": "Rubies MFB",
+    "slug": "rubies-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 286,
+    "code": "51113",
+    "name": "Safe Haven MFB",
+    "slug": "safe-haven-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 706,
+    "code": "40165",
+    "name": "SAGE GREY FINANCE LIMITED",
+    "slug": "sage-grey-finance-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 632,
+    "code": "50582",
+    "name": "Shield MFB",
+    "slug": "shield-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 750,
+    "code": "106",
+    "name": "Signature Bank Ltd",
+    "slug": "signature-bank-ltd-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 695,
+    "code": "51062",
+    "name": "Solid Allianze MFB",
+    "slug": "solid-allianze-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 365,
+    "code": "50800",
+    "name": "Solid Rock MFB",
+    "slug": "solid-rock-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 72,
+    "code": "51310",
+    "name": "Sparkle Microfinance Bank",
+    "slug": "sparkle-microfinance-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 855,
+    "code": "51429",
+    "name": "Springfield Microfinance Bank",
+    "slug": "springfield-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 14,
+    "code": "221",
+    "name": "Stanbic IBTC Bank",
+    "slug": "stanbic-ibtc-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 15,
+    "code": "068",
+    "name": "Standard Chartered Bank",
+    "slug": "standard-chartered-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 765,
+    "code": "090162",
+    "name": "STANFORD MICROFINANCE BANK",
+    "slug": "stanford-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 779,
+    "code": "50809",
+    "name": "STATESIDE MICROFINANCE BANK",
+    "slug": "stateside-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 826,
+    "code": "070022",
+    "name": "STB Mortgage Bank",
+    "slug": "stb-mortgage-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 285,
+    "code": "51253",
+    "name": "Stellas MFB",
+    "slug": "stellas-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 16,
+    "code": "232",
+    "name": "Sterling Bank",
+    "slug": "sterling-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 869,
+    "code": "00305",
+    "name": "Summit Bank",
+    "slug": "summit-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 23,
+    "code": "100",
+    "name": "Suntrust Bank",
+    "slug": "suntrust-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 631,
+    "code": "50968",
+    "name": "Supreme MFB",
+    "slug": "supreme-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 888,
+    "code": "51056",
+    "name": "Sycamore Microfinance Bank",
+    "slug": "sycamore-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 68,
+    "code": "302",
+    "name": "TAJ Bank",
+    "slug": "taj-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 186,
+    "code": "51269",
+    "name": "Tangerine Money",
+    "slug": "tangerine-money",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 889,
+    "code": "109",
+    "name": "Tatum Bank",
+    "slug": "tatum-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 811,
+    "code": "51403",
+    "name": "TENN",
+    "slug": "tenn-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 866,
+    "code": "677",
+    "name": "Think Finance Microfinance Bank",
+    "slug": "think-finance-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 73,
+    "code": "102",
+    "name": "Titan Bank",
+    "slug": "titan-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 788,
+    "code": "090708",
+    "name": "TransPay MFB",
+    "slug": "transpay-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 862,
+    "code": "51118",
+    "name": "TRUSTBANC J6 MICROFINANCE BANK",
+    "slug": "trustbanc-j6-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 690,
+    "code": "50840",
+    "name": "U&C Microfinance Bank Ltd (U AND C MFB)",
+    "slug": "uc-microfinance-bank-ltd-u-and-c-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 786,
+    "code": "090706",
+    "name": "UCEE MFB",
+    "slug": "ucee-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 630,
+    "code": "51322",
+    "name": "Uhuru MFB",
+    "slug": "uhuru-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 853,
+    "code": "51080",
+    "name": "Ultraviolet Microfinance Bank",
+    "slug": "ultraviolet-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 678,
+    "code": "50870",
+    "name": "Unaab Microfinance Bank Limited",
+    "slug": "unaab-microfinance-bank-limited-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 861,
+    "code": "51447",
+    "name": "UNIABUJA MFB",
+    "slug": "uniabuja-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 282,
+    "code": "50871",
+    "name": "Unical MFB",
+    "slug": "unical-mfb",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 638,
+    "code": "51316",
+    "name": "Unilag Microfinance Bank",
+    "slug": "unilag-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 823,
+    "code": "50875",
+    "name": "UNIMAID MICROFINANCE BANK",
+    "slug": "unimaid-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 17,
+    "code": "032",
+    "name": "Union Bank of Nigeria",
+    "slug": "union-bank-of-nigeria",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 18,
+    "code": "033",
+    "name": "United Bank For Africa",
+    "slug": "united-bank-for-africa",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 19,
+    "code": "215",
+    "name": "Unity Bank",
+    "slug": "unity-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 881,
+    "code": "50880",
+    "name": "UNIUYO Microfinance Bank Ltd",
+    "slug": "uniuyo-microfinance-bank-ltd-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 737,
+    "code": "50894",
+    "name": "Uzondu Microfinance Bank Awka Anambra State",
+    "slug": "uzondu-microfinance-bank-awka-anambra-state-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 725,
+    "code": "050020",
+    "name": "Vale Finance Limited",
+    "slug": "vale-finance",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 71,
+    "code": "566",
+    "name": "VFD Microfinance Bank Limited",
+    "slug": "vfd",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 701,
+    "code": "51355",
+    "name": "Waya Microfinance Bank",
+    "slug": "waya-microfinance-bank-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 20,
+    "code": "035",
+    "name": "Wema Bank",
+    "slug": "wema-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 854,
+    "code": "51386",
+    "name": "Weston Charis MFB",
+    "slug": "weston-charis-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 827,
+    "code": "100040",
+    "name": "Xpress Wallet",
+    "slug": "xpress-wallet-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 797,
+    "code": "594",
+    "name": "Yes MFB",
+    "slug": "yes-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 870,
+    "code": "00zap",
+    "name": "Zap",
+    "slug": "zap",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 21,
+    "code": "057",
+    "name": "Zenith Bank",
+    "slug": "zenith-bank",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  },
+  {
+    "id": 65,
+    "code": "057",
+    "name": "Zenith Bank",
+    "slug": "zenith-bank-usd",
+    "type": "nuban",
+    "currency": "USD",
+    "country": "Nigeria"
+  },
+  {
+    "id": 876,
+    "code": "51373",
+    "name": "Zitra MFB",
+    "slug": "zitra-mfb-ng",
+    "type": "nuban",
+    "currency": "NGN",
+    "country": "Nigeria"
+  }
+]
