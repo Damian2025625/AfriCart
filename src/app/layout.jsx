@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { SyncProvider } from '@/contexts/SyncContext';
 import TranslationLoader from '@/components/TranslationLoader';
 
 const geistSans = Geist({
@@ -41,11 +42,12 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <LanguageProvider>
-          
-          {/* 3. TranslationLoader shows loading screen during translation */}
-          <TranslationLoader />
-          
-          {children}
+          <SyncProvider>
+            {/* 3. TranslationLoader shows loading screen during translation */}
+            <TranslationLoader />
+            
+            {children}
+          </SyncProvider>
         </LanguageProvider>
         <Toaster
           position="top-right"

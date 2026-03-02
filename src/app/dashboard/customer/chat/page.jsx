@@ -23,8 +23,14 @@ export default function CustomerChatInboxPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const poll = () => {
+      if (document.visibilityState === 'visible') {
+        fetchConversations();
+      }
+    };
+
     fetchConversations();
-    const interval = setInterval(fetchConversations, 10000);
+    const interval = setInterval(poll, 15000);
     return () => clearInterval(interval);
   }, []);
 

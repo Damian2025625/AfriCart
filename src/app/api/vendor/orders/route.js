@@ -26,6 +26,9 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 10;
+    const skip = (page - 1) * limit;
 
     await connectDB();
 
@@ -48,13 +51,31 @@ export async function GET(request) {
       query.orderStatus = status;
     }
 
-    const orders = await Order.find(query)
-      .populate('customerId', 'firstName lastName email phone')
-      .sort({ createdAt: -1 });
+    const [orders, total] = await Promise.all([
+      Order.find(query)
+        .select({
+          orderNumber: 1,
+          orderStatus: 1,
+          total: 1,
+          createdAt: 1,
+          customerId: 1,
+          items: 1,
+          shippingAddress: 1
+        })
+        .populate('customerId', 'firstName lastName')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Order.countDocuments(query)
+    ]);
 
     return NextResponse.json({
       success: true,
       orders,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
       count: orders.length,
     });
   } catch (error) {

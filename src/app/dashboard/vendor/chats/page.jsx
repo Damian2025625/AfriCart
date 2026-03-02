@@ -26,8 +26,14 @@ export default function VendorChatInboxPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const poll = () => {
+      if (document.visibilityState === 'visible') {
+        fetchConversations();
+      }
+    };
+
     fetchConversations();
-    const interval = setInterval(fetchConversations, 10000);
+    const interval = setInterval(poll, 15000); // Increased to 15s and made visibility-aware
     return () => clearInterval(interval);
   }, []);
 

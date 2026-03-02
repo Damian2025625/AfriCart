@@ -17,11 +17,14 @@ import { IoShirtOutline, IoSparklesOutline } from "react-icons/io5";
 import toast from "react-hot-toast";
 import Image from "next/image";
 import LanguageSelector from "@/components/LanguageSelector";
+import { useSync } from "@/contexts/SyncContext";
 
 /* ─── Notification dropdown (guest-safe) ─── */
 function NotifDropdown({ isLoggedIn }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const { counts } = useSync();
+
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener("mousedown", h);
@@ -32,9 +35,14 @@ function NotifDropdown({ isLoggedIn }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-orange-500 group transition-colors border border-gray-200 dark:border-gray-700 outline-none"
+        className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-orange-500 group transition-colors border border-gray-200 dark:border-gray-700 outline-none relative"
       >
         <FiBell className="text-base text-gray-600 dark:text-gray-300 group-hover:text-white" />
+        {isLoggedIn && counts.notifications > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full animate-bounce">
+            {counts.notifications > 99 ? "99+" : counts.notifications}
+          </span>
+        )}
       </button>
       {open && (
         <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
@@ -46,7 +54,13 @@ function NotifDropdown({ isLoggedIn }) {
               <FiBell className="w-6 h-6 text-orange-400" />
             </div>
             {isLoggedIn
-              ? <p className="text-sm text-gray-500">No new notifications</p>
+              ? (counts.notifications > 0 
+                  ? <div className="flex flex-col gap-2">
+                      <p className="text-sm text-gray-700 dark:text-white font-semibold">You have {counts.notifications} action items</p>
+                      <Link href="/dashboard/customer" className="text-xs text-orange-600 hover:underline">View in dashboard</Link>
+                    </div>
+                  : <p className="text-sm text-gray-500">No new notifications</p>
+                )
               : <>
                   <p className="text-sm font-semibold text-gray-700 dark:text-white">Stay in the loop</p>
                   <p className="text-xs text-gray-400">Login to receive order updates &amp; messages</p>
@@ -94,11 +108,11 @@ const catStyles = [
 /* ═══════════════════════════════════════════════════════════════ */
 export default function StorefrontPage() {
   const router = useRouter();
+  const { counts } = useSync();
 
   // ── auth state ──
   const [isLoggedIn, setIsLoggedIn]     = useState(false);
   const [user, setUser]                 = useState(null);
-  const [cartCount, setCartCount]       = useState(0);
 
   // ── layout ──
   const [collapsed, setCollapsed]       = useState(false);
@@ -131,26 +145,13 @@ export default function StorefrontPage() {
       }).catch(() => {});
   }, []);
 
-  /* ── cart count ── */
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    const fetch_ = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) return;
-      const r = await fetch("/api/customer/cart/count", { headers: { Authorization: `Bearer ${token}` } });
-      const d = await r.json();
-      if (d.success) setCartCount(d.count || 0);
-    };
-    fetch_();
-    const iv = setInterval(fetch_, 15000);
-    const h = () => fetch_();
-    window.addEventListener("cartUpdated", h);
-    return () => { clearInterval(iv); window.removeEventListener("cartUpdated", h); };
-  }, [isLoggedIn]);
-
   /* ── hero auto-advance ── */
   useEffect(() => {
-    const iv = setInterval(() => setSlide(p => (p + 1) % heroSlides.length), 5000);
+    const iv = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        setSlide(p => (p + 1) % heroSlides.length);
+      }
+    }, 5000);
     return () => clearInterval(iv);
   }, []);
 
@@ -292,8 +293,8 @@ export default function StorefrontPage() {
             className="relative p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-orange-500 group transition-colors border border-gray-200 dark:border-gray-700"
           >
             <RiShoppingCart2Line className="text-base text-gray-600 dark:text-gray-300 group-hover:text-white"/>
-            {isLoggedIn && cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{cartCount > 99 ? "99+" : cartCount}</span>
+            {isLoggedIn && counts.cart > 0 && (
+              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{counts.cart > 99 ? "99+" : counts.cart}</span>
             )}
           </button>
         </div>
@@ -344,8 +345,8 @@ export default function StorefrontPage() {
               className="relative p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-orange-500 group transition-colors border border-gray-200 dark:border-gray-700"
             >
               <RiShoppingCart2Line className="text-base text-gray-600 dark:text-gray-300 group-hover:text-white"/>
-              {isLoggedIn && cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{cartCount > 99 ? "99+" : cartCount}</span>
+              {isLoggedIn && counts.cart > 0 && (
+                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{counts.cart > 99 ? "99+" : counts.cart}</span>
               )}
             </button>
             {isLoggedIn ? (

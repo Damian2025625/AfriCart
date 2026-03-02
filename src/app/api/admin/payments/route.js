@@ -53,35 +53,54 @@ export async function GET(request) {
       paymentStatus: "PAID",
       "vendorSettlement.subaccountCode": { $exists: true }
     })
+    .select('orderNumber total vendorSettlement createdAt vendorId')
     .sort({ createdAt: -1 })
     .populate("vendorId", "businessName")
-    .limit(50);
+    .limit(30) // Reduced from 50
+    .lean();
 
-    // 3. Aggregate Global Stats
-    // We fetch all successful vendor settlements to calculate total volume and earnings
-    const allPayouts = await Order.find({
-        isMasterOrder: false,
-        paymentStatus: "PAID",
-        "vendorSettlement.subaccountCode": { $exists: true }
-    }).select("vendorSettlement total");
-
-    let totalVendorShare = 0;
-    let totalPlatformCommission = 0;
-    let pendingVolume = 0; // Volume still in T+1 window
-
+    // Define twentyFourHoursAgo for use in aggregation
     const now = new Date();
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    allPayouts.forEach(order => {
-        const s = order.vendorSettlement;
-        totalVendorShare += s.amount || 0;
-        totalPlatformCommission += s.platformCommission || 0;
-        
-        // If order is less than 24h old, it's likely still in "Pending Settlement"
-        if (order.createdAt > twentyFourHoursAgo) {
-            pendingVolume += s.amount || 0;
+    // 3. Aggregate Global Stats using MongoDB Pipeline (Better performance than .find().lean())
+    const statsData = await Order.aggregate([
+      {
+        $match: {
+          isMasterOrder: false,
+          paymentStatus: "PAID",
+          "vendorSettlement.subaccountCode": { $exists: true }
         }
-    });
+      },
+      {
+        $group: {
+          _id: null,
+          totalVendorShare: { $sum: "$vendorSettlement.amount" },
+          totalPlatformCommission: { $sum: "$vendorSettlement.platformCommission" },
+          totalOrdersCount: { $sum: 1 },
+          // Pending volume (in T+1 window - approx last 24h)
+          pendingVolume: {
+            $sum: {
+              $cond: [
+                { $gt: ["$createdAt", twentyFourHoursAgo] },
+                "$vendorSettlement.amount",
+                0
+              ]
+            }
+          }
+        }
+      }
+    ]);
+
+    const s = statsData[0] || { totalVendorShare: 0, totalPlatformCommission: 0, pendingVolume: 0, totalOrdersCount: 0 };
+
+    const stats = {
+        walletBalance,
+        totalVendorShare: s.totalVendorShare,
+        totalPlatformCommission: s.totalPlatformCommission,
+        pendingSettlement: s.pendingVolume,
+        totalOrdersCount: s.totalOrdersCount
+    };
 
     // 4. Recent Inbound Master Orders
     const recentInbound = await Order.find({
@@ -90,15 +109,8 @@ export async function GET(request) {
     })
     .sort({ createdAt: -1 })
     .limit(10)
-    .populate("customerId", "firstName lastName email");
-
-    const stats = {
-        walletBalance,
-        totalVendorShare,
-        totalPlatformCommission,
-        pendingSettlement: pendingVolume,
-        totalOrdersCount: allPayouts.length
-    };
+    .populate("customerId", "firstName lastName email")
+    .lean();
 
     return NextResponse.json({
       success: true,

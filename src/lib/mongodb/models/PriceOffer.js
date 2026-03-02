@@ -105,6 +105,7 @@ PriceOfferSchema.index({ productId: 1, customerId: 1 });
 PriceOfferSchema.index({ vendorId: 1, status: 1 });
 PriceOfferSchema.index({ status: 1, expiresAt: 1 });
 PriceOfferSchema.index({ customerId: 1, status: 1 });
+PriceOfferSchema.index({ updatedAt: -1 });
 
 const PriceOffer = mongoose.models.PriceOffer || 
   mongoose.model('PriceOffer', PriceOfferSchema);

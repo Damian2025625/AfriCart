@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb/config';
 import Review from '@/lib/mongodb/models/Review';
 import Customer from '@/lib/mongodb/models/Customer';
 import Product from '@/lib/mongodb/models/Product';
+import User from '@/lib/mongodb/models/User';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET;

@@ -35,15 +35,33 @@ export async function GET(request) {
       ];
     }
 
-    const users = await User.find(userQuery).sort({ createdAt: -1 }).allowDiskUse(true).lean();
+    const users = await User.find(userQuery).sort({ createdAt: -1 }).limit(100).lean();
 
-    // Get order count for each customer
-    const customersWithStats = await Promise.all(
-      users.map(async (u) => {
-        const orderCount = await Order.countDocuments({ customerId: u._id, isMasterOrder: true });
-        return { ...u, orderCount };
-      })
-    );
+    // 2. Get order counts for all fetched users in ONE query instead of N+1
+    const userIds = users.map(u => u._id);
+    const orderCounts = await Order.aggregate([
+      { 
+        $match: { 
+          customerId: { $in: userIds }, 
+          isMasterOrder: true 
+        } 
+      },
+      {
+        $group: {
+          _id: "$customerId",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Map counts back to users
+    const countMap = {};
+    orderCounts.forEach(c => { countMap[c._id.toString()] = c.count; });
+
+    const customersWithStats = users.map(u => ({
+      ...u,
+      orderCount: countMap[u._id.toString()] || 0
+    }));
 
     return NextResponse.json({ success: true, customers: customersWithStats, count: customersWithStats.length });
   } catch (error) {

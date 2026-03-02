@@ -55,48 +55,75 @@ export async function GET(request) {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
-    // Products
-    const totalProducts = await Product.countDocuments({ vendorId: vendor._id });
-    const currentProducts = await Product.countDocuments({ vendorId: vendor._id, createdAt: { $gte: thirtyDaysAgo } });
-    const prevProducts = await Product.countDocuments({ vendorId: vendor._id, createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
+    // Products counts
+    const [totalProducts, currentProducts, prevProducts, totalOrders] = await Promise.all([
+      Product.countDocuments({ vendorId: vendor._id }),
+      Product.countDocuments({ vendorId: vendor._id, createdAt: { $gte: thirtyDaysAgo } }),
+      Product.countDocuments({ vendorId: vendor._id, createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } }),
+      Order.countDocuments({ vendorId: vendor._id })
+    ]);
+
     const productsTrend = prevProducts > 0 ? Math.round(((currentProducts - prevProducts) / prevProducts) * 100) : (currentProducts > 0 ? 100 : 0);
 
-    // Orders
-    const totalOrders = await Order.countDocuments({ vendorId: vendor._id });
-    const currentOrdersCount = await Order.countDocuments({ vendorId: vendor._id, createdAt: { $gte: thirtyDaysAgo } });
-    const prevOrdersCount = await Order.countDocuments({ vendorId: vendor._id, createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
-    const ordersTrend = prevOrdersCount > 0 ? Math.round(((currentOrdersCount - prevOrdersCount) / prevOrdersCount) * 100) : (currentOrdersCount > 0 ? 100 : 0);
-
-    // Calculate revenue from completed orders
-    const allOrders = await Order.find({
-      vendorId: vendor._id,
-      orderStatus: { $in: ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'] },
-    }).select('total vendorSettlement createdAt');
-
-    let totalRevenue = 0;
-    let currentRevenue = 0;
-    let prevRevenue = 0;
-
-    allOrders.forEach(order => {
-      // Use vendorSettlement amount if available, otherwise fallback to total
-      const val = order.vendorSettlement?.amount || order.total || 0;
-      totalRevenue += val;
-      
-      if (order.createdAt >= thirtyDaysAgo) {
-        currentRevenue += val;
-      } else if (order.createdAt >= sixtyDaysAgo && order.createdAt < thirtyDaysAgo) {
-        prevRevenue += val;
+    // Optimized Revenue and Orders calculation using aggregation
+    const statsAggregation = await Order.aggregate([
+      { 
+        $match: { 
+          vendorId: vendor._id,
+          orderStatus: { $in: ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'] }
+        } 
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: { $ifNull: ["$vendorSettlement.amount", { $ifNull: ["$total", 0] }] } },
+          currentRevenue: {
+            $sum: {
+              $cond: [{ $gte: ["$createdAt", thirtyDaysAgo] }, { $ifNull: ["$vendorSettlement.amount", "$total"] }, 0]
+            }
+          },
+          prevRevenue: {
+            $sum: {
+              $cond: [
+                { $and: [{ $gte: ["$createdAt", sixtyDaysAgo] }, { $lt: ["$createdAt", thirtyDaysAgo] }] },
+                { $ifNull: ["$vendorSettlement.amount", "$total"] },
+                0
+              ]
+            }
+          },
+          currentOrdersCount: {
+            $sum: { $cond: [{ $gte: ["$createdAt", thirtyDaysAgo] }, 1, 0] }
+          },
+          prevOrdersCount: {
+            $sum: {
+              $cond: [
+                { $and: [{ $gte: ["$createdAt", sixtyDaysAgo] }, { $lt: ["$createdAt", thirtyDaysAgo] }] },
+                1,
+                0
+              ]
+            }
+          }
+        }
       }
-    });
+    ]);
 
+    const statsResult = statsAggregation[0] || { 
+      totalRevenue: 0, currentRevenue: 0, prevRevenue: 0, 
+      currentOrdersCount: 0, prevOrdersCount: 0 
+    };
+
+    const { totalRevenue, currentRevenue, prevRevenue, currentOrdersCount, prevOrdersCount } = statsResult;
+
+    const ordersTrend = prevOrdersCount > 0 ? Math.round(((currentOrdersCount - prevOrdersCount) / prevOrdersCount) * 100) : (currentOrdersCount > 0 ? 100 : 0);
     const revenueTrend = prevRevenue > 0 ? Math.round(((currentRevenue - prevRevenue) / prevRevenue) * 100) : (currentRevenue > 0 ? 100 : 0);
 
-    // Get unique customers
-    const uniqueCustomers = await Order.distinct('customerId', { vendorId: vendor._id });
+    // Unique customers counts
+    const [uniqueCustomers, currentCustomers, prevCustomers] = await Promise.all([
+      Order.distinct('customerId', { vendorId: vendor._id }),
+      Order.distinct('customerId', { vendorId: vendor._id, createdAt: { $gte: thirtyDaysAgo } }),
+      Order.distinct('customerId', { vendorId: vendor._id, createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } })
+    ]);
     
-    // Customers trend - a bit complex with distinct, simplifying approximation: customers in last 30d vs 30-60d
-    const currentCustomers = await Order.distinct('customerId', { vendorId: vendor._id, createdAt: { $gte: thirtyDaysAgo } });
-    const prevCustomers = await Order.distinct('customerId', { vendorId: vendor._id, createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
     const cCurr = currentCustomers.length;
     const cPrev = prevCustomers.length;
     const customersTrend = cPrev > 0 ? Math.round(((cCurr - cPrev) / cPrev) * 100) : (cCurr > 0 ? 100 : 0);

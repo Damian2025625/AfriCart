@@ -48,7 +48,11 @@ function getDateRange(timeRange) {
  * apply the same fees_split ratio.
  */
 async function fetchVendorTransactions(subaccountCode, { from, to } = {}) {
-  const params = { status: "success", perPage: 100 };
+  const params = { 
+    status: "success", 
+    perPage: 100,
+    subaccount: subaccountCode // ✅ Let Paystack filter by subaccount
+  };
   if (from) params.from = from;
   if (to) params.to = to;
 
@@ -56,7 +60,8 @@ async function fetchVendorTransactions(subaccountCode, { from, to } = {}) {
   let page = 1;
   let hasMore = true;
 
-  while (hasMore && page <= 10) {
+  // Reduced from 10 to 5 pages for better performance (500 tx is plenty for charts)
+  while (hasMore && page <= 5) {
     try {
       const res = await axios.get("https://api.paystack.co/transaction", {
         headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
@@ -261,39 +266,46 @@ export async function GET(request) {
     const periodFrom = startDate.toISOString();
     const periodTo = endDate.toISOString();
     const periodLength = endDate.getTime() - startDate.getTime();
-    const prevFrom = new Date(startDate.getTime() - periodLength).toISOString();
+    const prevFromDate = new Date(startDate.getTime() - periodLength);
+    const prevFrom = prevFromDate.toISOString();
 
     // ═════════════════════════════════════════════════════
-    // 1. ALL-TIME transactions (for balance calculation)
-    //    Period transactions (for revenue chart / metrics)
+    // 1. Fetch relevant transactions
+    //    We fetch all-time (or recent 1000) transactions once,
+    //    and then filter for current and previous periods locally.
+    //    This avoids 2 extra sets of Paginated API calls!
     // ═════════════════════════════════════════════════════
-    const [allTimeTx, currentPeriodTx, prevPeriodTx] = await Promise.all([
+    const [allTimeTx, settlementsData] = await Promise.all([
       fetchVendorTransactions(subaccountCode),
-      fetchVendorTransactions(subaccountCode, { from: periodFrom, to: periodTo }),
-      fetchVendorTransactions(subaccountCode, { from: prevFrom, to: periodFrom }),
+      fetchVendorSettlements(subaccountCode),
     ]);
 
-    // ═════════════════════════════════════════════════════
-    // 2. Settlements (all-time, fetched from main endpoint + filtered)
-    //    Contains: totalSettled (success), totalPendingSettlement (pending/processing)
-    // ═════════════════════════════════════════════════════
-    const { settlements, totalSettled, totalPendingSettlement } =
-      await fetchVendorSettlements(subaccountCode);
+    const { settlements, totalSettled, totalPendingSettlement } = settlementsData;
+
+    // Filter current and previous periods from the already fetched list
+    const currentPeriodTx = allTimeTx.filter(t => t.date >= startDate && t.date <= endDate);
+    const prevPeriodTx = allTimeTx.filter(t => t.date >= prevFromDate && t.date < startDate);
 
     // ═════════════════════════════════════════════════════
     // 3. Balance logic
-    //
-    //    totalEarned = sum of vendorNet from ALL successful transactions
-    //    totalSettled = sum from settlements with status=success (sent to bank)
-    //    pendingBalance = totalEarned - totalSettled
-    //      (money Paystack is still holding, to be sent next business day)
-    //
-    //    The pendingSettlement from settlement API is also available, but 
-    //    calculating from transactions is more accurate because settlement 
-    //    records may appear slightly later.
+    // ... continues as before
+    // ═════════════════════════════════════════════════════
+    // 3. Balance logic (Simplified)
     // ═════════════════════════════════════════════════════
     const totalEarned = allTimeTx.reduce((sum, t) => sum + t.vendorNet, 0);
-    const pendingBalance = Math.max(totalEarned - totalSettled, 0);
+    const totalAvailable = Math.max(totalEarned - totalSettled, 0);
+    
+    // Paystack holds funds until they reach 100 NGN
+    let pendingBalance = 0;
+    let onHoldBalance = 0;
+    
+    if (totalAvailable < 100) {
+      onHoldBalance = totalAvailable;
+      pendingBalance = 0;
+    } else {
+      onHoldBalance = 0;
+      pendingBalance = totalAvailable;
+    }
 
     // ═════════════════════════════════════════════════════
     // 4. Period metrics
@@ -359,57 +371,71 @@ export async function GET(request) {
 
     // ═════════════════════════════════════════════════════
     // 6. Local DB data: order status, top products, customers, reviews
-    //    These aren't on Paystack — only our DB has them
+    //    Optimized using aggregation pipelines to avoid deep population
     // ═════════════════════════════════════════════════════
-    const localOrders = await Order.find({
-      vendorId: vendor._id,
-      createdAt: { $gte: startDate, $lte: endDate },
-    }).populate({
-      path: "items.productId",
-      populate: { path: "categoryId", model: "Category", select: "name" }
-    });
+    const [categoryStats, productStats, customerStats, reviewStats] = await Promise.all([
+      // A. Category Sales Distribution
+      Order.aggregate([
+        { $match: { vendorId: vendor._id, createdAt: { $gte: startDate, $lte: endDate }, orderStatus: { $ne: "CANCELLED" } } },
+        { $unwind: "$items" },
+        { $lookup: { from: "products", localField: "items.productId", foreignField: "_id", as: "productInfo" } },
+        { $unwind: { path: "$productInfo", preserveNullAndEmptyArrays: true } },
+        { $lookup: { from: "categories", localField: "productInfo.categoryId", foreignField: "_id", as: "categoryInfo" } },
+        { $unwind: { path: "$categoryInfo", preserveNullAndEmptyArrays: true } },
+        { $group: { _id: { $ifNull: ["$categoryInfo.name", "Uncategorized"] }, totalUnits: { $sum: "$items.quantity" } } },
+        { $project: { name: "$_id", value: "$totalUnits", _id: 0 } },
+        { $sort: { value: -1 } }
+      ]),
 
-    const categoryMap = {};
-    let totalItemsSold = 0;
-    localOrders.forEach((o) => {
-      o.items.forEach((item) => {
-        if (o.orderStatus !== "CANCELLED") {
-          const catName = item.productId?.categoryId?.name || "Uncategorized";
-          categoryMap[catName] = (categoryMap[catName] || 0) + item.quantity;
-          totalItemsSold += item.quantity;
+      // B. Top Products
+      Order.aggregate([
+        { $match: { vendorId: vendor._id, createdAt: { $gte: startDate, $lte: endDate } } },
+        { $unwind: "$items" },
+        {
+          $group: {
+            _id: "$items.productId",
+            name: { $first: "$items.name" },
+            sales: { $sum: "$items.quantity" },
+            revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } }
+          }
+        },
+        { $sort: { revenue: -1 } },
+        { $limit: 5 }
+      ]),
+
+      // C. Customer Insights (Total & Returning)
+      Order.aggregate([
+        { $match: { vendorId: vendor._id, createdAt: { $gte: startDate, $lte: endDate } } },
+        { $group: { _id: "$customerId", orderCount: { $sum: 1 } } },
+        {
+          $group: {
+            _id: null,
+            totalCustomers: { $sum: 1 },
+            returningCustomers: { $sum: { $cond: [{ $gt: ["$orderCount", 1] }, 1, 0] } }
+          }
         }
-      });
-    });
+      ]),
+
+      // D. Review Stats - Optimized to use aggregation
+      Review.aggregate([
+        { $lookup: { from: "products", localField: "productId", foreignField: "_id", as: "product" } },
+        { $unwind: "$product" },
+        { $match: { "product.vendorId": vendor._id } },
+        { $group: { _id: null, avgRating: { $avg: "$rating" }, totalReviews: { $sum: 1 } } }
+      ])
+    ]);
 
     const colors = ["#8B5CF6", "#10B981", "#F97316", "#3B82F6", "#EC4899", "#F59E0B", "#14B8A6", "#EAB308", "#A855F7"];
-    const salesByCategory = Object.entries(categoryMap)
-      .map(([name, value], idx) => ({ name, value, color: colors[idx % colors.length] }))
-      .sort((a, b) => b.value - a.value);
+    const salesByCategory = categoryStats.map((c, idx) => ({ ...c, color: colors[idx % colors.length] }));
+    const totalItemsSold = salesByCategory.reduce((sum, c) => sum + c.value, 0);
+    const topProducts = productStats.map(p => ({
+      name: p.name,
+      sales: p.sales,
+      revenue: parseFloat(p.revenue.toFixed(2))
+    }));
 
-    const productMap = {};
-    localOrders.forEach((order) => {
-      order.items.forEach((item) => {
-        const key = item.productId?._id?.toString() || item.name;
-        if (!productMap[key]) productMap[key] = { name: item.name, sales: 0, revenue: 0 };
-        productMap[key].sales += item.quantity;
-        productMap[key].revenue += (item.price || 0) * item.quantity;
-      });
-    });
-    const topProducts = Object.values(productMap)
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5);
-
-    const custMap = {};
-    localOrders.forEach((o) => {
-      custMap[o.customerId.toString()] = (custMap[o.customerId.toString()] || 0) + 1;
-    });
-    const returningCustomers = Object.values(custMap).filter((c) => c > 1).length;
-
-    const vendorProducts = await Product.find({ vendorId: vendor._id });
-    const reviews = await Review.find({ productId: { $in: vendorProducts.map((p) => p._id) } });
-    const averageRating = reviews.length > 0
-      ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
-      : 0;
+    const customerInsightsRaw = customerStats[0] || { totalCustomers: 0, returningCustomers: 0 };
+    const reviewInsightsRaw = reviewStats[0] || { avgRating: 0, totalReviews: 0 };
 
     // ═════════════════════════════════════════════════════
     // 7. Settlement history display
@@ -467,22 +493,17 @@ export async function GET(request) {
         revenueChange: parseFloat(revenueChange.toFixed(2)),
         totalOrders,
         ordersChange: parseFloat(ordersChange.toFixed(2)),
-        // All-time earnings (what vendor has earned net of all fees)
         ledgerBalance: parseFloat(totalEarned.toFixed(2)),
       },
       settlements: {
-        // ← Money that Paystack has ALREADY sent to the bank (success settlements)
         totalSettled: parseFloat(totalSettled.toFixed(2)),
-        // ← Money sitting in Paystack wallet, not yet sent to bank
         pendingBalance: parseFloat(pendingBalance.toFixed(2)),
-        // pendingBalance from settlement records (may differ slightly — use tx-based as primary)
+        onHoldBalance: parseFloat(onHoldBalance.toFixed(2)),
         settlementPending: parseFloat(totalPendingSettlement.toFixed(2)),
-        // All-time vendor net earned (totalSettled + pendingBalance)
         ledgerBalance: parseFloat(totalEarned.toFixed(2)),
         settlementCount: settlements.filter((s) => s.status === "success").length,
         nextSettlementDate: nextSettlementDate.toISOString().split("T")[0],
         subaccountCode: vendor.paystackSubaccount?.subaccountCode,
-        // Vendor receives (100 - percentage_charge)% after Paystack fees
         splitPercentage: 100 - (vendor.paystackSubaccount?.percentageCharge || 3),
         platformFee: vendor.paystackSubaccount?.percentageCharge || 3,
         bankName: vendor.bankAccount?.bankName,
@@ -496,10 +517,10 @@ export async function GET(request) {
       topProducts,
       smartInsights,
       customerInsights: {
-        totalCustomers: Object.keys(custMap).length,
-        returningCustomers,
-        averageRating: parseFloat(averageRating.toFixed(2)),
-        totalReviews: reviews.length,
+        totalCustomers: customerInsightsRaw.totalCustomers,
+        returningCustomers: customerInsightsRaw.returningCustomers,
+        averageRating: parseFloat(reviewInsightsRaw.avgRating.toFixed(2)),
+        totalReviews: reviewInsightsRaw.totalReviews,
       },
       recentSettlements,
     };

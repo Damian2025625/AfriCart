@@ -6,6 +6,7 @@ import PriceOffer from '@/lib/mongodb/models/PriceOffer';
 import User from '@/lib/mongodb/models/User';
 import Vendor from '@/lib/mongodb/models/Vendor';
 import Product from '@/lib/mongodb/models/Product';
+import Customer from '@/lib/mongodb/models/Customer';
 
 export async function GET(request) {
   try {
@@ -25,17 +26,28 @@ export async function GET(request) {
 
     // 1. Fetch Disputed Orders
     const disputedOrders = await Order.find({ 'dispute.isDisputed': true })
-      .populate('customerId', 'firstName lastName email')
-      .populate('vendorId', 'businessName email')
-      .sort({ updatedAt: -1 });
+      .select('orderNumber orderStatus dispute customerId vendorId updatedAt')
+      .populate('customerId', 'firstName lastName')
+      .populate('vendorId', 'businessName')
+      .sort({ updatedAt: -1 })
+      .limit(20) // Reduced from 50 for faster load
+      .lean();
 
     // 2. Fetch Price Offers (Negotiations)
     const recentOffers = await PriceOffer.find()
-      .populate('customerId', 'firstName lastName')
+      .select('offerPrice status customerId vendorId productId updatedAt')
+      .populate({
+        path: 'customerId',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName'
+        }
+      })
       .populate('vendorId', 'businessName')
       .populate('productId', 'name images')
       .sort({ updatedAt: -1 })
-      .limit(50);
+      .limit(20) // Reduced from 50
+      .lean();
 
     return NextResponse.json({
       success: true,

@@ -164,7 +164,6 @@ const VendorSchema = new mongoose.Schema(
 );
 
 // ✅ Index for faster queries
-VendorSchema.index({ userId: 1 });
 VendorSchema.index({ 'flutterwaveSubaccount.subaccountId': 1 });
 VendorSchema.index({ 'paystackSubaccount.subaccountCode': 1 });
 VendorSchema.index({ 'bankAccount.accountNumber': 1 });

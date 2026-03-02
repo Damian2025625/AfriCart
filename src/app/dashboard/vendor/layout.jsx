@@ -23,6 +23,7 @@ import toast from "react-hot-toast";
 import Image from "next/image";
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import LanguageSelector from "@/components/LanguageSelector";
+import { useSync } from "@/contexts/SyncContext";
 
 export default function VendorLayout({ children }) {
   const pathname = usePathname();
@@ -32,6 +33,7 @@ export default function VendorLayout({ children }) {
   const [user, setUser] = useState(null);
   const [vendor, setVendor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { counts } = useSync();
 
   const initials = getBusinessInitials(vendor?.businessName);
 
@@ -146,8 +148,13 @@ export default function VendorLayout({ children }) {
         <div className="flex items-center gap-2">
           <LanguageSelector />
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200">
+            <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200 relative">
               <FiBell className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
+              {counts.notifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {counts.notifications > 99 ? "99+" : counts.notifications}
+                </span>
+              )}
             </div>
             <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200">
               <RiShoppingCart2Line className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
@@ -202,8 +209,13 @@ export default function VendorLayout({ children }) {
           <div className="flex items-center gap-3">
             <LanguageSelector />
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200">
+              <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200 relative">
                 <FiBell className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
+                {counts.notifications > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                    {counts.notifications > 99 ? "99+" : counts.notifications}
+                  </span>
+                )}
               </div>
               <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200">
                 <RiShoppingCart2Line className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
@@ -275,7 +287,7 @@ export default function VendorLayout({ children }) {
                   href={item.href}
                   onClick={() => setMobileSidebarOpen(false)}
                   className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                    flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative
                     ${
                       isActive
                         ? "bg-orange-100 text-orange-600"
@@ -290,6 +302,21 @@ export default function VendorLayout({ children }) {
                   >
                     {item.name}
                   </span>
+                  
+                  {/* Item Specific Badges */}
+                  {!sidebarCollapsed && item.name === "Chats" && counts.messages > 0 && (
+                    <span className="ml-auto bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                      {counts.messages}
+                    </span>
+                  )}
+                  {!sidebarCollapsed && item.name === "Offers" && counts.offers > 0 && (
+                    <span className="ml-auto bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                      {counts.offers}
+                    </span>
+                  )}
+                  {sidebarCollapsed && ((item.name === "Chats" && counts.messages > 0) || (item.name === "Offers" && counts.offers > 0)) && (
+                    <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white" />
+                  )}
                 </Link>
               );
             })}

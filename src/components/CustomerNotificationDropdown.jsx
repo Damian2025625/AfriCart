@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { FiBell, FiPackage, FiMessageSquare, FiTag, FiClock } from "react-icons/fi";
+import { useSync } from "@/contexts/SyncContext";
 
 // Time formatter without needing date-fns
 function timeAgo(dateParam) {
@@ -23,15 +24,15 @@ function timeAgo(dateParam) {
 
 export default function CustomerNotificationDropdown() {
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { counts, refresh } = useSync();
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000); // 1 minute
-    return () => clearInterval(interval);
-  }, []);
+    if (isOpen) {
+      fetchNotifications();
+    }
+  }, [isOpen]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -56,12 +57,6 @@ export default function CustomerNotificationDropdown() {
 
       if (data.success && data.notifications) {
         setNotifications(data.notifications);
-
-        // Calculate unread based on localStorage tracking
-        const readNotifsData = localStorage.getItem("readNotifications");
-        const readNotifications = readNotifsData ? JSON.parse(readNotifsData) : [];
-        const unread = data.notifications.filter(n => !readNotifications.includes(n.id)).length;
-        setUnreadCount(unread);
       }
     } catch (error) {
       console.error("Failed to fetch notifications", error);
@@ -71,7 +66,7 @@ export default function CustomerNotificationDropdown() {
   const markAllAsRead = () => {
     const allIds = notifications.map(n => n.id);
     localStorage.setItem("readNotifications", JSON.stringify(allIds));
-    setUnreadCount(0);
+    refresh(); // Update the badge count immediately via sync context
   };
 
   const handleNotificationClick = (id) => {
@@ -81,7 +76,7 @@ export default function CustomerNotificationDropdown() {
     if (!readNotifications.includes(id)) {
       const newRead = [...readNotifications, id];
       localStorage.setItem("readNotifications", JSON.stringify(newRead));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      refresh();
     }
     setIsOpen(false); // Close dropdown when a notification is clicked
   };
@@ -113,9 +108,9 @@ export default function CustomerNotificationDropdown() {
         <FiBell className="text-base text-gray-700 cursor-pointer group-hover:text-white" />
         
         {/* Unread Badge Count */}
-        {unreadCount > 0 && (
+        {counts.notifications > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full animate-bounce">
-            {unreadCount > 99 ? "99+" : unreadCount}
+            {counts.notifications > 99 ? "99+" : counts.notifications}
           </span>
         )}
       </button>
@@ -128,7 +123,7 @@ export default function CustomerNotificationDropdown() {
         {/* Header */}
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
           <h3 className="font-bold text-gray-900">Notifications</h3>
-          {unreadCount > 0 && (
+          {counts.notifications > 0 && (
             <button 
               onClick={markAllAsRead}
               className="text-xs text-orange-600 font-semibold hover:underline"

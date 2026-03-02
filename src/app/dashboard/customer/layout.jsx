@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { RiShoppingCart2Line } from "react-icons/ri";
 import CustomerOffersNotification from "@/components/CustomerOffersNotification";
 import CustomerNotificationDropdown from "@/components/CustomerNotificationDropdown";
+import { useSync } from "@/contexts/SyncContext";
 import {
   FiHome,
   FiPackage,
@@ -36,7 +37,7 @@ export default function CustomerLayout({ children }) {
   const [loading, setLoading] = useState(true);
   const [showHeaderSearch, setShowHeaderSearch] = useState(false);
   const [headerSearchTerm, setHeaderSearchTerm] = useState("");
-  const [cartItemCount, setCartItemCount] = useState(0);
+  const { counts } = useSync();
 
   const hideSearchOn = [
     "/dashboard/customer/cart",
@@ -54,26 +55,7 @@ export default function CustomerLayout({ children }) {
 
   const initials = getUserInitials();
 
-  const fetchCartCount = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) return;
 
-      const response = await fetch("/api/customer/cart/count", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setCartItemCount(data.count || 0);
-      }
-    } catch (error) {
-      console.error("Error fetching cart count:", error);
-    }
-  };
 
   useEffect(() => {
     const checkUser = async () => {
@@ -117,7 +99,6 @@ export default function CustomerLayout({ children }) {
         });
 
         setLoading(false);
-        fetchCartCount();
       } catch (error) {
         console.error("Error fetching user:", error);
         toast.error("Session expired. Please log in again.");
@@ -127,20 +108,6 @@ export default function CustomerLayout({ children }) {
 
     checkUser();
   }, [router]);
-
-  useEffect(() => {
-    if (user) {
-      fetchCartCount();
-      const handleCartUpdate = () => fetchCartCount();
-      window.addEventListener("cartUpdated", handleCartUpdate);
-      const interval = setInterval(() => fetchCartCount(), 30000);
-
-      return () => {
-        clearInterval(interval);
-        window.removeEventListener("cartUpdated", handleCartUpdate);
-      };
-    }
-  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -205,17 +172,17 @@ export default function CustomerLayout({ children }) {
           <LanguageSelector />
           <div className="flex items-center gap-2">
             <CustomerNotificationDropdown />
-            <Link
-              href="/dashboard/customer/cart"
-              className="relative p-2 rounded-xl bg-gray-300 hover:bg-orange-600 group transition-colors duration-200"
-            >
-              <RiShoppingCart2Line className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                  {cartItemCount > 99 ? "99+" : cartItemCount}
-                </span>
-              )}
-            </Link>
+              <Link
+                href="/dashboard/customer/cart"
+                className="relative p-2 rounded-xl bg-gray-300 hover:bg-orange-600 group transition-colors duration-200"
+              >
+                <RiShoppingCart2Line className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
+                {counts.cart > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                    {counts.cart > 99 ? "99+" : counts.cart}
+                  </span>
+                )}
+              </Link>
           </div>
         </div>
       </div>
@@ -319,9 +286,9 @@ export default function CustomerLayout({ children }) {
                 className="relative p-2 rounded-xl bg-gray-300 hover:bg-orange-600 group transition-colors duration-200"
               >
                 <RiShoppingCart2Line className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
-                {cartItemCount > 0 && (
+                {counts.cart > 0 && (
                   <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                    {cartItemCount > 99 ? "99+" : cartItemCount}
+                    {counts.cart > 99 ? "99+" : counts.cart}
                   </span>
                 )}
               </Link>

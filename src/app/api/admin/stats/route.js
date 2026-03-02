@@ -57,6 +57,7 @@ export async function GET(request) {
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
     // Run all queries in parallel for performance (including live Paystack balance)
+    // Run all queries in parallel for performance
     const [
       totalVendors,
       newVendorsThisMonth,
@@ -65,11 +66,11 @@ export async function GET(request) {
       totalOrders,
       ordersThisMonth,
       ordersLastMonth,
-      paidOrders,
       recentOrders,
       pendingVendors,
       totalProducts,
-      paystackBalance, // 🔴 LIVE from Paystack API
+      paystackBalance,
+      revenueAgg
     ] = await Promise.all([
       Vendor.countDocuments(),
       Vendor.countDocuments({ createdAt: { $gte: startOfMonth } }),
@@ -78,28 +79,38 @@ export async function GET(request) {
       Order.countDocuments({ isMasterOrder: true }),
       Order.countDocuments({ isMasterOrder: true, createdAt: { $gte: startOfMonth } }),
       Order.countDocuments({ isMasterOrder: true, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } }),
-      Order.find({ isMasterOrder: true, paymentStatus: "PAID" }).select("total"),
       Order.find({ isMasterOrder: true })
         .sort({ createdAt: -1 })
-        .allowDiskUse(true)
         .limit(8)
-        .select("orderNumber orderStatus paymentStatus total createdAt customerId"),
+        .select("orderNumber orderStatus paymentStatus total createdAt customerId")
+        .lean(),
       Vendor.countDocuments({ isVerified: false }),
       Product.countDocuments(),
-      fetchPaystackBalance(), // runs alongside MongoDB, won't slow things down
+      fetchPaystackBalance(),
+      Order.aggregate([
+        { $match: { isMasterOrder: true, paymentStatus: "PAID" } },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: "$total" },
+            revenueThisMonth: {
+              $sum: {
+                $cond: [
+                  { $gte: ["$createdAt", startOfMonth] },
+                  "$total",
+                  0
+                ]
+              }
+            }
+          }
+        }
+      ]),
     ]);
 
-    // Total revenue from all paid orders
-    const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    const platformRevenue = totalRevenue * 0.03; // 3% commission
-
-    // Revenue this month
-    const paidOrdersThisMonth = await Order.find({
-      isMasterOrder: true,
-      paymentStatus: "PAID",
-      createdAt: { $gte: startOfMonth },
-    }).select("total");
-    const revenueThisMonth = paidOrdersThisMonth.reduce((sum, o) => sum + (o.total || 0), 0);
+    const rev = revenueAgg[0] || { totalRevenue: 0, revenueThisMonth: 0 };
+    const totalRevenue = rev.totalRevenue;
+    const revenueThisMonth = rev.revenueThisMonth;
+    const platformRevenue = totalRevenue * 0.03;
 
     // Order status breakdown
     const orderStatusBreakdown = await Order.aggregate([

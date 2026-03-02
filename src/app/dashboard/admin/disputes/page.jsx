@@ -282,7 +282,7 @@ export default function AdminDisputesPage() {
                       <td className="px-6 py-4">
                         <div className="text-xs space-y-1">
                           <p className="flex items-center text-gray-900 font-semibold">
-                            <FiUser className="mr-1 text-blue-500" /> {offer.customerId?.firstName} {offer.customerId?.lastName}
+                            <FiUser className="mr-1 text-blue-500" /> {offer.customerId?.userId?.firstName} {offer.customerId?.userId?.lastName}
                           </p>
                           <p className="flex items-center text-gray-500">
                             <FiTrello className="mr-1 text-purple-500" /> {offer.vendorId?.businessName}

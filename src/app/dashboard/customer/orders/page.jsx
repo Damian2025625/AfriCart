@@ -24,7 +24,9 @@ export default function CustomerOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [error, setError] = useState(null);
 
   const tabs = [
     { id: "ALL", label: "All Orders", icon: FiPackage },
@@ -41,21 +43,27 @@ export default function CustomerOrdersPage() {
 
   const fetchOrders = async (page = 1) => {
     setLoading(true);
-    if (page === 1) setIsInitializing(true);
+    setError(null);
+    // Scrolled to top on page change
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    if (page === 1) setIsInitializing(currentPage === 1);
+    
     try {
       const token = localStorage.getItem("authToken");
-
-      if (!token) {
-        router.push("/login");
-        return;
-      }
+      if (!token) { router.push("/login"); return; }
 
       const statusParam = activeTab !== "ALL" ? `&status=${activeTab}` : "";
-      const response = await fetch(`/api/customer/orders?page=${page}&limit=10${statusParam}`, {
+      const response = await fetch(`/api/customer/orders?page=${page}&limit=5${statusParam}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Server error: ${response.status}`);
+      }
 
       const data = await response.json();
 
@@ -63,12 +71,14 @@ export default function CustomerOrdersPage() {
         setOrders(data.orders || []);
         setTotalPages(data.pages || 1);
         setCurrentPage(data.page || 1);
+        setTotalOrders(data.total || 0);
       } else {
-        toast.error(data.message || "Failed to load orders");
+        throw new Error(data.message || "Failed to load orders");
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
-      toast.error("Failed to load orders");
+      setError(error.message);
+      toast.error(error.message || "Failed to load orders");
     } finally {
       setLoading(false);
       setIsInitializing(false);
@@ -125,14 +135,40 @@ export default function CustomerOrdersPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+        <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <FiXCircle className="w-10 h-10 text-red-500" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+        <p className="text-gray-600 text-sm mb-6 max-w-sm mx-auto">{error}</p>
+        <button
+          onClick={() => fetchOrders(1)}
+          className="px-8 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition shadow-lg flex items-center gap-2"
+        >
+          <FiPackage /> Retry Loading Orders
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">My Orders</h1>
-        <p className="text-gray-600 text-sm">
-          Track and manage all your orders
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">My Orders</h1>
+          <p className="text-gray-600 text-xs">
+            Showing {totalOrders} total {totalOrders === 1 ? 'order' : 'orders'}
+          </p>
+        </div>
+        {loading && !isInitializing && (
+          <div className="flex items-center gap-2 text-orange-500">
+            <div className="w-4 h-4 border-2 border-current border-t-transparent animate-spin rounded-full"/>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Refreshing...</span>
+          </div>
+        )}
       </div>
 
       {/* Search and Filter */}
@@ -224,7 +260,7 @@ export default function CustomerOrdersPage() {
                       <span>Placed on {formatDate(order.createdAt)}</span>
                       <span>•</span>
                       <span className="font-semibold">
-                        {order.vendorId?.businessName}
+                        {order.items?.length || 0} {order.items?.length === 1 ? 'Item' : 'Items'}
                       </span>
                     </div>
                   </div>
@@ -240,9 +276,9 @@ export default function CustomerOrdersPage() {
 
                 {/* Order Items */}
                 <div className="space-y-3 mb-4">
-                  {order.items.slice(0, 2).map((item, index) => (
+                  {(order.items || []).slice(0, 2).map((item, index) => (
                     <div key={index} className="flex gap-3">
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                         {item.image ? (
                           <img
                             src={item.image}
@@ -255,11 +291,11 @@ export default function CustomerOrdersPage() {
                           </div>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-gray-900 line-clamp-1">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-gray-900 truncate">
                           {item.name}
                         </h4>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-[10px] sm:text-xs text-gray-600">
                           Qty: {item.quantity} × {formatCurrency(item.price)}
                         </p>
                         <p className="text-sm font-bold text-orange-600">
@@ -268,9 +304,9 @@ export default function CustomerOrdersPage() {
                       </div>
                     </div>
                   ))}
-                  {order.items.length > 2 && (
+                  {(order.items?.length || 0) > 2 && (
                     <p className="text-xs text-gray-500 italic">
-                      +{order.items.length - 2} more items
+                      +{(order.items?.length || 0) - 2} more items
                     </p>
                   )}
                 </div>
@@ -288,59 +324,88 @@ export default function CustomerOrdersPage() {
             </div>
           ))}
 
-          {/* Pagination Controls */}
+          {/* Robust Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-6">
-              <button
-                onClick={() => fetchOrders(currentPage - 1)}
-                disabled={currentPage === 1 || loading}
-                className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                Previous
-              </button>
+            <div className="mt-10 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => fetchOrders(1)}
+                  disabled={currentPage === 1 || loading}
+                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition-colors"
+                  title="First Page"
+                >
+                  <FiChevronsLeft size={16}/>
+                </button>
+                <button
+                  onClick={() => fetchOrders(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition-colors"
+                  title="Previous Page"
+                >
+                  <FiChevronLeft size={16}/>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5 overflow-x-auto max-w-[200px] sm:max-w-none pb-2 sm:pb-0">
                 {[...Array(totalPages)].map((_, i) => {
-                  const pageNum = i + 1;
-                  // Only show current page, first, last, and relative pages if totalPages > 5
-                  if (
-                    totalPages <= 5 ||
-                    pageNum === 1 ||
-                    pageNum === totalPages ||
-                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => fetchOrders(pageNum)}
-                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                          currentPage === pageNum
-                            ? "bg-orange-500 text-white"
-                            : "text-gray-600 hover:bg-gray-100"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  } else if (
-                    (pageNum === 2 && currentPage > 3) ||
-                    (pageNum === totalPages - 1 && currentPage < totalPages - 2)
-                  ) {
-                    return <span key={pageNum} className="text-gray-400">...</span>;
+                  const p = i + 1;
+                  // Window logic: show 2 pages around current
+                  if (totalPages > 5) {
+                    if (p !== 1 && p !== totalPages && (p < currentPage - 1 || p > currentPage + 1)) {
+                      if (p === 2 && currentPage > 3) return <span key={p} className="text-gray-300 px-1">...</span>;
+                      if (p === totalPages - 1 && currentPage < totalPages - 2) return <span key={p} className="text-gray-300 px-1">...</span>;
+                      return null;
+                    }
                   }
-                  return null;
+
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => fetchOrders(p)}
+                      disabled={loading}
+                      className={`w-9 h-9 rounded-xl text-xs font-black transition-all ${
+                        currentPage === p
+                          ? "bg-orange-500 text-white shadow-lg scale-110"
+                          : "bg-gray-50 text-gray-600 hover:bg-orange-50 hover:text-orange-500"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
                 })}
               </div>
-              <button
-                onClick={() => fetchOrders(currentPage + 1)}
-                disabled={currentPage === totalPages || loading}
-                className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                Next
-              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => fetchOrders(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition-colors"
+                  title="Next Page"
+                >
+                  <FiChevronRight size={16}/>
+                </button>
+                <button
+                  onClick={() => fetchOrders(totalPages)}
+                  disabled={currentPage === totalPages || loading}
+                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 transition-colors"
+                  title="Last Page"
+                >
+                  <FiChevronsRight size={16}/>
+                </button>
+              </div>
             </div>
           )}
+          
+          <div className="mt-6 text-center">
+            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">
+              Showing Page {currentPage} of {totalPages}
+            </p>
+          </div>
         </div>
       )}
     </div>
   );
 }
+
+// Additional icons
+import { FiPlusCircle, FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
