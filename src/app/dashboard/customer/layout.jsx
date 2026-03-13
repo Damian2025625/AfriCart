@@ -400,7 +400,6 @@ export default function CustomerLayout({ children }) {
       >
         <div className="p-4">
           {children}
-          <CustomerOffersNotification />
         </div>
       </main>
     </div>
