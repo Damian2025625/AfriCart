@@ -3,6 +3,7 @@ import connectDB from '@/lib/mongodb/config';
 import Vendor from '@/lib/mongodb/models/Vendor';
 import Product from '@/lib/mongodb/models/Product';
 import Review from '@/lib/mongodb/models/Review';
+import Category from '@/lib/mongodb/models/Category';
 
 export async function GET(request, { params }) {
   try {

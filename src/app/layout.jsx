@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { SyncProvider } from '@/contexts/SyncContext';
 import TranslationLoader from '@/components/TranslationLoader';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -69,7 +70,7 @@ export default function RootLayout({ children }) {
           <SyncProvider>
             {/* 3. TranslationLoader shows loading screen during translation */}
             <TranslationLoader />
-            
+            <SpeedInsights />
             {children}
           </SyncProvider>
         </LanguageProvider>
