@@ -96,6 +96,7 @@ export default function CustomerLayout({ children }) {
           lastName: data.user.lastName,
           phone: data.user.phone,
           role: data.user.role,
+          profilePicture: data.user.profilePicture,
         });
 
         setLoading(false);
@@ -107,6 +108,12 @@ export default function CustomerLayout({ children }) {
     };
 
     checkUser();
+
+    const handleProfileUpdate = () => { checkUser(); };
+    if (typeof window !== 'undefined') {
+      window.addEventListener("profileUpdated", handleProfileUpdate);
+      return () => window.removeEventListener("profileUpdated", handleProfileUpdate);
+    }
   }, [router]);
 
   useEffect(() => {
@@ -120,7 +127,7 @@ export default function CustomerLayout({ children }) {
   const handleHeaderSearch = (e) => {
     e.preventDefault();
     if (headerSearchTerm.trim()) {
-      router.push(`/shop?search=${encodeURIComponent(headerSearchTerm)}`);
+      router.push(`/dashboard/search?search=${encodeURIComponent(headerSearchTerm)}`);
       setHeaderSearchTerm("");
     }
   };
@@ -160,8 +167,8 @@ export default function CustomerLayout({ children }) {
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-linear-to-br from-green-600 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-            {initials}
+          <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+            {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
           </div>
           <span className="font-bold text-gray-900 dark:text-white text-sm">
             {user?.firstName || "Customer"}
@@ -303,9 +310,13 @@ export default function CustomerLayout({ children }) {
                 </span>
               </div>
               <div className="relative w-9 h-9 rounded-full overflow-hidden shrink-0 ring-2 ring-gray-200">
-                <div className="w-full h-full bg-linear-to-br from-green-400 to-orange-600 flex items-center justify-center text-white font-bold text-sm">
-                  {initials}
-                </div>
+                {user?.profilePicture ? (
+                  <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-linear-to-br from-green-400 to-orange-600 flex items-center justify-center text-white font-bold text-sm">
+                    {initials}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -326,8 +337,8 @@ export default function CustomerLayout({ children }) {
           <div
             className={`h-13 flex items-center border-b border-gray-200 gap-3 transition-all duration-300 ${sidebarCollapsed ? "lg:justify-center lg:px-2" : "px-4"}`}
           >
-            <div className="w-9 h-9 bg-linear-to-br from-green-600 to-orange-600 rounded-xl flex text-sm items-center justify-center text-white font-bold shrink-0">
-              {initials}
+            <div className="w-9 h-9 bg-gradient-to-br from-green-600 to-orange-600 rounded-xl flex text-sm items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+              {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
             </div>
             <span
               className={`font-bold text-gray-900 dark:text-white text-base whitespace-nowrap transition-all duration-300 ${sidebarCollapsed ? "lg:hidden" : ""}`}

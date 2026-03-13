@@ -6,6 +6,8 @@ import Product from '@/lib/mongodb/models/Product';
 import Vendor from '@/lib/mongodb/models/Vendor';
 import Conversation from '@/lib/mongodb/models/Conversation';
 import Message from '@/lib/mongodb/models/Message';
+import PowerHour from '@/lib/mongodb/models/PowerHour';
+import CommunitySlash from '@/lib/mongodb/models/CommunitySlash';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -170,6 +172,23 @@ export async function PATCH(request) {
       offer.status = 'ACCEPTED';
       offer.acceptedAt = new Date();
       offer.vendorResponse = vendorResponse?.trim() || null;
+
+      // ✅ If there's an active promotion, shorten the expiration to match it
+      // Instead of 7 days, if a Slash or Power Hour is live, match its end time
+      try {
+        const [activePowerHour, activeSlash] = await Promise.all([
+          PowerHour.findOne({ productId: offer.productId._id, status: 'ACTIVE', endTime: { $gt: new Date() } }),
+          CommunitySlash.findOne({ productId: offer.productId._id, status: 'PENDING', endTime: { $gt: new Date() } })
+        ]);
+
+        if (activeSlash) {
+          offer.expiresAt = activeSlash.endTime;
+        } else if (activePowerHour) {
+          offer.expiresAt = activePowerHour.endTime;
+        }
+      } catch (err) {
+        console.error('Error checking active promos during accept:', err);
+      }
 
       // Create or get conversation
       let conversation = await Conversation.findOne({

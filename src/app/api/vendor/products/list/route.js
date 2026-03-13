@@ -69,6 +69,7 @@ export async function GET(request) {
       sku: product.sku,
       images: product.images,
       features: product.features,
+      activeSlashId: product.activeSlashId, // Added for visibility
       discountPercentage: product.discountPercentage,
       discountStartDate: product.discountStartDate,
       discountEndDate: product.discountEndDate,

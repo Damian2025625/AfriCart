@@ -17,6 +17,7 @@ import {
   FiX,
   FiUpload,
   FiChevronDown,
+  FiZap,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import Image from "next/image";
@@ -207,6 +208,8 @@ export default function ProductsPage() {
       filtered = filtered.filter((p) => p.quantity > 0 && p.quantity <= 10);
     } else if (selectedStatus === "out_of_stock") {
       filtered = filtered.filter((p) => p.quantity === 0);
+    } else if (selectedStatus === "promoted") {
+      filtered = filtered.filter((p) => p.activeSlashId);
     }
 
     setFilteredProducts(filtered);
@@ -457,7 +460,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div id="products-stats" className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -522,7 +525,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl p-4 mb-6 border border-gray-100">
+      <div id="products-filters" className="bg-white rounded-2xl p-4 mb-6 border border-gray-100">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
@@ -643,6 +646,15 @@ export default function ProductsPage() {
                 >
                   Out of Stock
                 </button>
+                <button
+                  onClick={() => {
+                    setSelectedStatus("promoted");
+                    setShowStatusDropdown(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-900 border-t border-gray-100 font-medium text-orange-600"
+                >
+                  On Promotion 🔥
+                </button>
               </div>
             )}
           </div>
@@ -651,7 +663,7 @@ export default function ProductsPage() {
 
       {/* Products Grid */}
       {filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+        <div id="products-list" className="bg-white rounded-2xl p-12 text-center border border-gray-100">
           <FiPackage className="mx-auto text-gray-300 mb-4" size={64} />
           <h3 className="text-xl font-bold text-gray-900 mb-2">
             No products found
@@ -668,7 +680,7 @@ export default function ProductsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div id="products-list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => {
             const stockStatus = getStockStatus(
               product.quantity,
@@ -699,11 +711,21 @@ export default function ProductsPage() {
                   {/* Status Badge */}
                   <div className="absolute top-3 left-3">
                     <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${stockStatus.color}`}
+                      className={`inline-block px-3 py-1 rounded-full text-[10px] font-medium ${stockStatus.color}`}
                     >
                       {stockStatus.label}
                     </span>
                   </div>
+
+                  {/* Promotion Badge */}
+                  {product.activeSlashId && (
+                    <div className="absolute top-3 right-3">
+                      <span className="bg-linear-to-r from-orange-500 to-red-500 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-lg flex items-center gap-1 animate-pulse">
+                        <FiZap className="w-2.5 h-2.5" />
+                        SLASHER
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Product Info */}
@@ -736,7 +758,7 @@ export default function ProductsPage() {
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-                    <span>{product.sold || 0} sold</span>
+                    <span>{product.totalSold || 0} sold</span>
                     <div className="relative">
                       <button
                         onClick={() =>

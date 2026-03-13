@@ -19,7 +19,10 @@ import {
   FiThumbsUp,
   FiThumbsDown,
   FiTag,
-  FiDollarSign
+  FiDollarSign,
+  FiZap,
+  FiUsers,
+  FiClock
 } from "react-icons/fi";
 import { AiOutlineMessage } from "react-icons/ai";
 import toast from "react-hot-toast";
@@ -67,6 +70,13 @@ export default function ProductDescriptionPage() {
   const [customerNote, setCustomerNote] = useState("");
   const [submittingOffer, setSubmittingOffer] = useState(false);
   const [existingOffer, setExistingOffer] = useState(null);
+
+  // Community Slash states
+  const [slashSession, setSlashSession] = useState(null);
+  const [joiningSlash, setJoiningSlash] = useState(false);
+
+  // Countdown timer state
+  const [timeLeft, setTimeLeft] = useState("");
 
 
   const fetchCustomPrice = async () => {
@@ -225,10 +235,59 @@ export default function ProductDescriptionPage() {
       await fetchCustomPrice();
       await checkWishlistStatus();
       await checkExistingOffer();
+      await fetchSlashStatus();
     };
 
     initialize();
   }, [productId]);
+
+  const fetchSlashStatus = async () => {
+    try {
+      const response = await fetch(`/api/customer/promotion/slash/status/${productId}`);
+      const data = await response.json();
+      if (data.success) {
+        setSlashSession(data.session);
+      }
+    } catch (error) {
+      console.error("Error fetching slash status:", error);
+    }
+  };
+
+  const handleJoinSlash = async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      toast.error("Please login to join the group buy");
+      router.push("/login");
+      return;
+    }
+
+    if (!slashSession) return;
+
+    setJoiningSlash(true);
+    try {
+      const response = await fetch("/api/customer/promotion/slash/join", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ slashId: slashSession.id }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        toast.success(data.message);
+        await fetchSlashStatus();
+      } else {
+        toast.error(data.message || "Failed to join group buy");
+      }
+    } catch (error) {
+      console.error("Error joining slash:", error);
+      toast.error("Failed to join group buy");
+    } finally {
+      setJoiningSlash(false);
+    }
+  };
 
   // ✅ Add this new useEffect to refetch reviews when currentUser changes
   useEffect(() => {
@@ -245,6 +304,42 @@ export default function ProductDescriptionPage() {
     window.addEventListener("cartUpdated", handleCartUpdate);
     return () => window.removeEventListener("cartUpdated", handleCartUpdate);
   }, [productId]);
+
+  const isOfferActive = (existingOffer?.status === 'ACCEPTED' || existingOffer?.status === 'CLAIMED') && new Date(existingOffer.expiresAt) > new Date();
+
+  // Countdown Timer Effect
+  useEffect(() => {
+    if (!existingOffer?.expiresAt || !isOfferActive) {
+      setTimeLeft("");
+      return;
+    }
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = new Date(existingOffer.expiresAt).getTime() - now;
+
+      if (distance < 0) {
+        setTimeLeft("Expired");
+        clearInterval(timer);
+        // Refresh offer status to hide UI
+        checkExistingOffer();
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      let timeString = "";
+      if (days > 0) timeString += `${days}d `;
+      timeString += `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      setTimeLeft(timeString);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [existingOffer, isOfferActive]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -276,7 +371,7 @@ export default function ProductDescriptionPage() {
       if (!token) return;
 
       const response = await fetch(
-        `/api/customer/offers?productId=${params.id}&status=PENDING`,
+        `/api/customer/offers?productId=${params.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -284,7 +379,25 @@ export default function ProductDescriptionPage() {
 
       const data = await response.json();
       if (data.success && data.offers.length > 0) {
-        setExistingOffer(data.offers[0]);
+        console.log(`[OfferCheck] Found ${data.offers.length} offers for product ${params.id}`);
+        // Filter out expired offers
+        const activeOffers = data.offers.filter(o => new Date(o.expiresAt) > new Date());
+        
+        if (activeOffers.length > 0) {
+          // Find the most relevant offer (Accepted first, then Claimed, then Pending)
+          const sortedOffers = activeOffers.sort((a, b) => {
+            const statusPriority = { 'ACCEPTED': 0, 'CLAIMED': 1, 'PENDING': 2 };
+            const priorityA = statusPriority[a.status] ?? 3;
+            const priorityB = statusPriority[b.status] ?? 3;
+            if (priorityA !== priorityB) return priorityA - priorityB;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+          console.log(`[OfferCheck] Selected offer status: ${sortedOffers[0].status}`);
+          setExistingOffer(sortedOffers[0]);
+        } else {
+          console.log(`[OfferCheck] All offers found are expired.`);
+          setExistingOffer(null);
+        }
       }
     } catch (error) {
       console.error("Error checking existing offer:", error);
@@ -600,6 +713,45 @@ export default function ProductDescriptionPage() {
     return distribution;
   };
 
+  const handleClaimOffer = async () => {
+    if (!existingOffer || existingOffer.status !== 'ACCEPTED') {
+      // If already claimed, just add to cart
+      await handleAddToCart();
+      return;
+    }
+    
+    setAddingToCart(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch('/api/customer/offers', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          offerId: existingOffer._id,
+          action: 'CLAIM_OFFER'
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setExistingOffer(data.offer);
+        // Add to cart with the new status
+        await handleAddToCart();
+      } else {
+        // Fallback to just adding to cart
+        await handleAddToCart();
+      }
+    } catch (error) {
+      console.error('Error claiming offer:', error);
+      await handleAddToCart();
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
   const handleAddToCart = async () => {
     setAddingToCart(true);
     try {
@@ -699,7 +851,10 @@ export default function ProductDescriptionPage() {
 
   const hasActiveDiscount = isDiscountActive(product);
   const discountedPrice = getDiscountedPrice(product);
-  const savings = product.price - discountedPrice;
+  
+  const finalDisplayPrice = isOfferActive ? (existingOffer.finalPrice || existingOffer.maxPrice) : discountedPrice;
+  const savings = product.price - finalDisplayPrice;
+  
   const averageRating = calculateAverageRating();
   const ratingDistribution = getRatingDistribution();
 
@@ -740,6 +895,18 @@ export default function ProductDescriptionPage() {
                   <FiStar className="w-2.5 h-2.5" />
                   Featured
                 </span>
+                {product.hasActivePowerHour && (
+                  <span className="bg-linear-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                    <FiZap className="w-2.5 h-2.5" />
+                    Power Hour
+                  </span>
+                )}
+                {product.activeSlashId && (
+                  <span className="bg-linear-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 animate-pulse">
+                    <FiUsers className="w-2.5 h-2.5" />
+                    Group Buy
+                  </span>
+                )}
               </div>
 
               <div className="absolute top-3 right-3 flex flex-col gap-1.5">
@@ -813,6 +980,18 @@ export default function ProductDescriptionPage() {
 
           {/* Product Details */}
           <div>
+            {slashSession && (
+              <div className="mb-4 bg-linear-to-r from-orange-500 to-red-600 text-white px-4 py-2.5 rounded-xl shadow-lg animate-pulse flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FiZap className="w-4 h-4" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Active Group Buy!</span>
+                </div>
+                <span className="text-[10px] font-medium bg-white/20 px-2 py-0.5 rounded-lg border border-white/30 truncate max-w-40">
+                  {slashSession.currentCount} / {slashSession.targetCount} joined
+                </span>
+              </div>
+            )}
+
             <div className="inline-block bg-orange-100 text-orange-600 text-[10px] font-semibold px-2.5 py-1 rounded-full mb-2">
               {product.category?.name || "Product"}
             </div>
@@ -889,38 +1068,233 @@ export default function ProductDescriptionPage() {
                 )}
               </div>
             ) : (
-              <div className="bg-orange-50 rounded-lg p-3 mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl md:text-3xl font-bold text-orange-600">
-                    {formatCurrency(discountedPrice)}
-                  </span>
-                  {hasActiveDiscount && (
-                    <>
-                      <span className="text-base text-gray-400 line-through">
-                        {formatCurrency(product.price)}
-                      </span>
-                      <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        Save {formatCurrency(savings)}
-                      </span>
-                    </>
-                  )}
+              <>
+                {isOfferActive && (
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[10px] text-green-600 font-bold uppercase tracking-widest flex items-center gap-1">
+                      <FiStar className="fill-current w-2.5 h-2.5" />
+                      Special Offer for You
+                    </p>
+                    {timeLeft && (
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-100/50 rounded-full border border-green-200">
+                        <FiClock className="w-2.5 h-2.5 text-green-600" />
+                        <span className="text-[10px] font-mono font-bold text-green-700">{timeLeft}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div
+                  className={`rounded-xl p-3 mb-4 ${
+                    isOfferActive ? "bg-green-50" : "bg-orange-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-2xl md:text-3xl font-black ${
+                        isOfferActive ? "text-green-600" : "text-orange-600"
+                      }`}
+                    >
+                      {formatCurrency(finalDisplayPrice)}
+                    </span>
+                    {(hasActiveDiscount || isOfferActive) && (
+                      <>
+                        <span className="text-base text-gray-400 line-through">
+                          {formatCurrency(product.price)}
+                        </span>
+                        <span
+                          className={`${
+                            isOfferActive ? "bg-green-500" : "bg-red-500"
+                          } text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm`}
+                        >
+                          Save {formatCurrency(savings)}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
+              </>
+            )}
+
+
+            {/* Community Slashing Promotion Card */}
+            {product.activeSlashId && slashSession && (
+              <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 mb-6 relative overflow-hidden">
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-orange-500 rounded-lg text-white">
+                        <FiUsers size={16} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-sm">Community Slashing</h3>
+                        <p className="text-[10px] text-orange-700 font-medium">Join friends to slash the price!</p>
+                      </div>
+                    </div>
+                    {slashSession.status === 'PENDING' && (
+                      <div className="bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-1 rounded-lg border border-orange-200 flex items-center gap-1">
+                        <FiClock size={12} />
+                        {Math.max(0, Math.floor((new Date(slashSession.endTime) - new Date()) / (1000 * 60 * 60)))}h left
+                      </div>
+                    )}
+                    {slashSession.status === 'SUCCESS' && (
+                      <div className="bg-green-100 text-green-600 text-[10px] font-bold px-2 py-1 rounded-lg border border-green-200 flex items-center gap-1">
+                        <FiCheckCircle size={12} />
+                        Target Reached!
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-end justify-between mb-4">
+                    <div>
+                      <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-0.5">Slashed Price</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold text-orange-600">{formatCurrency(slashSession.slashedPrice)}</span>
+                        <span className="text-sm text-gray-400 line-through">{formatCurrency(slashSession.originalPrice)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-0.5">Participants</p>
+                      <span className="text-sm font-bold text-gray-900">{slashSession.currentCount} / {slashSession.targetCount}</span>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="h-3 bg-gray-200 rounded-full mb-4 overflow-hidden border border-gray-100">
+                    <div 
+                      className="h-full bg-linear-to-r from-orange-400 to-orange-600 transition-all duration-1000"
+                      style={{ width: `${Math.min(100, (slashSession.currentCount / slashSession.targetCount) * 100)}%` }}
+                    />
+                  </div>
+
+                  {slashSession.status === 'PENDING' ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        onClick={handleJoinSlash}
+                        disabled={joiningSlash || slashSession.participants.includes(currentUser?._id)}
+                        className="py-2.5 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-200"
+                      >
+                       {joiningSlash ? (
+                         <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                       ) : slashSession.participants.includes(currentUser?._id) ? (
+                         <>
+                           <FiCheckCircle />
+                           Joined
+                         </>
+                       ) : (
+                         <>
+                           <FiPlus />
+                           Join to Slash
+                         </>
+                       )}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(window.location.href);
+                          toast.success("Link copied! Share it with friends.");
+                        }}
+                        className="py-2.5 bg-white text-gray-900 border border-gray-200 rounded-xl text-xs font-bold hover:border-orange-500 hover:text-orange-500 transition-all flex items-center justify-center gap-2"
+                      >
+                        <FiShare2 />
+                        Recruit Friends
+                      </button>
+                    </div>
+                  ) : slashSession.status === 'SUCCESS' ? (
+                    <div className="bg-green-100 border border-green-200 rounded-xl p-3">
+                      <p className="text-[11px] text-green-800 font-medium leading-relaxed">
+                        🎉 <span className="font-bold text-green-900">Level Unlocked!</span> {slashSession.participants.includes(currentUser?._id) 
+                        ? "Since you were part of the group, you can now purchase at the slashed price." 
+                        : "The community reached the target! You missed the join window, but keep an eye out for the next one."}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+                <FiZap className="absolute -right-4 -bottom-4 text-6xl text-orange-200/30 rotate-12" />
               </div>
             )}
 
-            {existingOffer && (
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <FiTag className="text-purple-600" />
-                  <h3 className="font-bold text-purple-900">Your Active Offer</h3>
-                </div>
-                <p className="text-sm text-purple-800 mb-2">
-                  Price Range: {formatCurrency(existingOffer.minPrice)} -{" "}
-                  {formatCurrency(existingOffer.maxPrice)}
-                </p>
-                <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
-                  Waiting for vendor response
-                </span>
+            {/* Show banner ONLY if NOT in cart and NOT already claimed/completed */}
+            {existingOffer && (cartItemQuantity === null) && !['CLAIMED', 'COMPLETED'].includes(existingOffer.status) && (
+              <div className={`rounded-2xl p-5 mb-6 relative overflow-hidden border-2 transition-all duration-500 ${
+                existingOffer.status === 'ACCEPTED' 
+                  ? 'bg-linear-to-br from-green-50 to-emerald-50 border-green-200 shadow-xl shadow-green-100 ring-2 ring-green-100' 
+                  : 'bg-purple-50 border-purple-200 shadow-sm'
+              }`}>
+                {existingOffer.status === 'ACCEPTED' ? (
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-green-500 text-white flex items-center justify-center shadow-md">
+                          <FiCheckCircle size={20} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-green-900 text-sm">Special Offer Unlocked!</h3>
+                          <p className="text-[10px] text-green-700 font-medium uppercase tracking-wider">Exclusive price just for you</p>
+                        </div>
+                      </div>
+                      <div className="bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg">
+                        ACCEPTED
+                      </div>
+                    </div>
+
+                    {timeLeft && (
+                      <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3 mb-4 border border-green-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FiClock className="text-green-600" size={14} />
+                          <span className="text-[10px] font-bold text-green-800 uppercase tracking-widest">Offer Expires In:</span>
+                        </div>
+                        <span className="text-sm font-mono font-black text-green-700">{timeLeft}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-end gap-3 mb-4">
+                      <div>
+                        <p className="text-[9px] text-green-600 font-bold uppercase mb-0.5">Your New Price</p>
+                        <span className="text-3xl font-black text-green-700">{formatCurrency(existingOffer.finalPrice || existingOffer.maxPrice)}</span>
+                      </div>
+                      <div className="mb-1">
+                        <span className="text-sm text-gray-400 line-through">{formatCurrency(product.price)}</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => handleClaimOffer()} 
+                      disabled={addingToCart}
+                      className="w-full py-3 bg-green-600 text-white rounded-xl text-xs font-bold hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-200 disabled:opacity-50"
+                    >
+                      {addingToCart ? (
+                        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <FiShoppingCart />
+                          Claim Special Offer
+                        </>
+                      )}
+                    </button>
+                    
+                    <p className="text-center mt-3 text-[10px] text-green-600 font-medium italic">
+                      "Enjoy this special discount on us!" — Vendor
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                        <FiTag size={16} />
+                      </div>
+                      <h3 className="font-bold text-purple-900 text-sm">Active Offer Sent</h3>
+                    </div>
+                    <p className="text-xs text-purple-800 mb-4">
+                      Your offer of <span className="font-bold">{formatCurrency(existingOffer.minPrice)} - {formatCurrency(existingOffer.maxPrice)}</span> is currently being reviewed by the vendor.
+                    </p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-full text-[10px] font-bold">
+                      <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse" />
+                      Waiting for vendor response
+                    </div>
+                  </div>
+                )}
+                {existingOffer.status === 'ACCEPTED' && (
+                  <FiPackage className="absolute -right-6 -bottom-6 text-7xl text-green-600/10 rotate-12" />
+                )}
               </div>
             )}
 
@@ -982,10 +1356,18 @@ export default function ProductDescriptionPage() {
               <button
                   onClick={() => setShowOfferModal(true)}
                   disabled={!!existingOffer}
-                  className="px-3 py-2 border text-[12px] bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 w-full transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className={`px-3 py-2 border text-[12px] rounded-lg font-semibold w-full transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                    existingOffer?.status === "ACCEPTED" 
+                      ? "bg-green-600 text-white active:scale-95" 
+                      : "bg-purple-500 text-white"
+                  }`}
                 >
                   <FiTag />
-                  {existingOffer ? "Offer Pending" : "Make an Offer"}
+                  {existingOffer?.status === "ACCEPTED" 
+                    ? "Offer Accepted" 
+                    : existingOffer 
+                    ? "Offer Pending" 
+                    : "Make an Offer"}
                 </button>
             </div>
 

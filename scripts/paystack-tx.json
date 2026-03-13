@@ -1,7 +1,0 @@
-Found 5 transactions.
-Latest transaction:
-ID: 5866700331
-Date: 2026-02-23T21:09:32.000Z
-Subaccount: ACCT_dgwsban3uq49s4n
-Metadata: {"cancel_action":"http://localhost:3000/dashboard/customer/cart","custom_fields":[{"display_name":"Customer Name","variable_name":"customer_name","value":"Kenechukwu Analiefo"},{"display_name":"Customer Phone","variable_name":"customer_phone","value":"+2348163293969"}],"shipping_name":"Kenechukwu Analiefo","shipping_phone":"+2348163293969","shipping_address":"No 1 Victoria Close Rumibekwe Housing Estate","shipping_city":"Port-Harcourt","shipping_state":"Rivers","shipping_zip":"100001","shipping_info":"","subtotal":"120","deliveryFee":"0","isGiftWrapped":"false","giftWrapFee":"0","customer_id":"695d2725794f541aaf90d4fb","cartItems":"[{\"productId\":\"697ca36c135419d56017078b\",\"quantity\":6,\"customPrice\":null}]","referrer":"http://localhost:3000/"}
-Fees Split: "{\"paystack\":180,\"integration\":360,\"subaccount\":11460,\"params\":{\"bearer\":\"subaccount\",\"transaction_charge\":\"\",\"percentage_charge\":\"3\"}}"

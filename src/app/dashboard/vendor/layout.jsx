@@ -14,16 +14,19 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
-  FiBell,
   FiMessageSquare,
   FiTag,
   FiUser,
+  FiShoppingCart,
+  FiZap,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useSync } from "@/contexts/SyncContext";
+import VendorNotificationDropdown from "@/components/VendorNotificationDropdown";
+import VendorTutorial from "@/components/VendorTutorial";
 
 export default function VendorLayout({ children }) {
   const pathname = usePathname();
@@ -96,6 +99,12 @@ export default function VendorLayout({ children }) {
     };
 
     checkUser();
+
+    const handleProfileUpdate = () => { checkUser(); };
+    if (typeof window !== 'undefined') {
+      window.addEventListener("profileUpdated", handleProfileUpdate);
+      return () => window.removeEventListener("profileUpdated", handleProfileUpdate);
+    }
   }, [router]);
 
   const handleLogout = () => {
@@ -108,6 +117,7 @@ export default function VendorLayout({ children }) {
     { name: "Overview", href: "/dashboard/vendor", icon: FiHome },
     { name: "Products", href: "/dashboard/vendor/products", icon: FiPackage },
     { name: "Orders", href: "/dashboard/vendor/orders", icon: FiShoppingBag },
+    { name: "Promotions", href: "/dashboard/vendor/promotions", icon: FiZap },
     { name: "Analytics", href: "/dashboard/vendor/analytics", icon: FiBarChart2 },
     { name: "Chats", href: "/dashboard/vendor/chats", icon: FiMessageSquare },
     { name: "Offers", href: "/dashboard/vendor/offers", icon: FiTag },
@@ -127,6 +137,7 @@ export default function VendorLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-800 w-full flex">
+      <VendorTutorial />
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b flex items-center justify-between px-4 z-50">
         <button
@@ -137,43 +148,19 @@ export default function VendorLayout({ children }) {
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-linear-to-br from-green-600 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-            {initials}
+          <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+            {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
           </div>
           <span className="font-bold text-black text-sm">
             {vendor?.businessName || "Vendor"}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <LanguageSelector />
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200 relative">
-              <FiBell className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
-              {counts.notifications > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                  {counts.notifications > 99 ? "99+" : counts.notifications}
-                </span>
-              )}
-            </div>
-            <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200">
-              <RiShoppingCart2Line className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
-            </div>
-          </div>
-          <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-gray-200">
-            {vendor?.logoUrl ? (
-              <Image
-                src={vendor.logoUrl}
-                alt={vendor.businessName || "Vendor"}
-                fill
-                className="object-cover"
-                sizes="32px"
-              />
-            ) : (
-              <div className="w-full h-full bg-linear-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs">
-                {initials}
-              </div>
-            )}
+          <VendorNotificationDropdown />
+          <div className="p-1.5 sm:p-2 rounded-xl bg-gray-100 hover:bg-orange-50 transition-colors">
+            <RiShoppingCart2Line className="text-gray-600 dark:text-gray-300" />
           </div>
         </div>
       </div>
@@ -209,14 +196,7 @@ export default function VendorLayout({ children }) {
           <div className="flex items-center gap-3">
             <LanguageSelector />
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200 relative">
-                <FiBell className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
-                {counts.notifications > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                    {counts.notifications > 99 ? "99+" : counts.notifications}
-                  </span>
-                )}
-              </div>
+              <VendorNotificationDropdown />
               <div className="p-2 rounded-xl bg-gray-300 hover:bg-purple-600 group transition-colors duration-200">
                 <RiShoppingCart2Line className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
               </div>
@@ -231,13 +211,11 @@ export default function VendorLayout({ children }) {
                 </span>
               </div>
               <div className="relative w-9 h-9 rounded-full overflow-hidden shrink-0 ring-2 ring-gray-200">
-                {vendor?.logoUrl ? (
-                  <Image
-                    src={vendor.logoUrl}
-                    alt={vendor.businessName || "Vendor"}
-                    fill
-                    className="object-cover"
-                    sizes="40px"
+                {vendor?.logoUrl || user?.profilePicture ? (
+                  <img
+                    src={vendor?.logoUrl || user?.profilePicture}
+                    alt={vendor?.businessName || "Vendor"}
+                    className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full bg-linear-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-sm">
@@ -265,8 +243,8 @@ export default function VendorLayout({ children }) {
           <div
             className={`h-13 flex items-center border-b border-gray-200 gap-3 transition-all duration-300 ${sidebarCollapsed ? "lg:justify-center lg:px-2" : "px-4"}`}
           >
-            <div className="w-9 h-9 bg-linear-to-br from-green-600 to-orange-600 rounded-xl flex text-sm items-center justify-center text-white font-bold shrink-0">
-              {initials}
+            <div className="w-9 h-9 bg-gradient-to-br from-green-600 to-orange-600 rounded-xl flex text-sm items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+              {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
             </div>
             <span
               className={`font-bold text-black text-base whitespace-nowrap transition-all duration-300 ${sidebarCollapsed ? "lg:hidden" : ""}`}
@@ -284,6 +262,7 @@ export default function VendorLayout({ children }) {
               return (
                 <Link
                   key={item.name}
+                  id={`nav-${item.name.toLowerCase()}`}
                   href={item.href}
                   onClick={() => setMobileSidebarOpen(false)}
                   className={`
@@ -348,10 +327,11 @@ export default function VendorLayout({ children }) {
         flex-1 transition-all duration-300
         pt-16
         lg:pt-13
-        ${sidebarCollapsed ? "lg:ml-15" : "lg:ml-58 overflow-hidden"}
+        ${sidebarCollapsed ? "lg:ml-15" : "lg:ml-58"}
+        min-w-0
       `}
       >
-        <div className="p-4 py-8">{children}</div>
+        <div className="p-3 sm:p-4 md:p-6 lg:py-8 w-full">{children}</div>
       </main>
     </div>
   );

@@ -84,6 +84,41 @@ export class PaystackAdapter {
   }
   
   /**
+   * Verify bank account
+   */
+  async verifyBankAccount(accountNumber, bankCode) {
+    try {
+      const response = await axios.get(
+        `${this.baseURL}/bank/resolve?account_number=${accountNumber}&bank_code=${bankCode}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${this.secretKey}`,
+          },
+        }
+      );
+      
+      if (response.data.status) {
+        return {
+          success: true,
+          accountName: response.data.data.account_name,
+          accountNumber: response.data.data.account_number,
+        };
+      }
+      
+      return {
+        success: false,
+        message: response.data.message || 'Account verification failed',
+      };
+    } catch (error) {
+      console.error('Paystack account verification error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to verify account',
+      };
+    }
+  }
+
+  /**
    * Verify payment
    */
   async verifyPayment(reference) {

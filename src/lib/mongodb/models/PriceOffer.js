@@ -33,7 +33,7 @@ const PriceOfferSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['PENDING', 'ACCEPTED', 'DECLINED', 'NEGOTIATING', 'COMPLETED', 'EXPIRED', 'COUNTERED'],
+      enum: ['PENDING', 'ACCEPTED', 'DECLINED', 'NEGOTIATING', 'COMPLETED', 'EXPIRED', 'COUNTERED', 'CLAIMED'],
       default: 'PENDING',
     },
     vendorResponse: {

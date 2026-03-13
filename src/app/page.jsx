@@ -135,14 +135,26 @@ export default function StorefrontPage() {
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token) return;
-    fetch("/api/user/profile", { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => {
-        if (d.success && d.user.role === "CUSTOMER") {
-          setIsLoggedIn(true);
-          setUser(d.user);
-        }
-      }).catch(() => {});
+    
+    const checkUser = () => {
+      fetch("/api/user/profile", { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .then(d => {
+          if (d.success && d.user.role === "CUSTOMER") {
+            setIsLoggedIn(true);
+            setUser({
+              ...d.user,
+              profilePicture: d.user.profilePicture
+            });
+          }
+        }).catch(() => {});
+    };
+
+    checkUser();
+    if (typeof window !== 'undefined') {
+      window.addEventListener("profileUpdated", checkUser);
+      return () => window.removeEventListener("profileUpdated", checkUser);
+    }
   }, []);
 
   /* ── hero auto-advance ── */
@@ -351,7 +363,9 @@ export default function StorefrontPage() {
             </button>
             {isLoggedIn ? (
               <Link href="/dashboard/customer" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-green-500 to-orange-500 text-white text-xs font-bold shadow hover:opacity-90 transition">
-                <div className="w-5 h-5 bg-white/30 rounded-full flex items-center justify-center font-bold text-[10px]">{initials}</div>
+                <div className="w-5 h-5 bg-white/30 rounded-full flex items-center justify-center font-bold text-[10px] overflow-hidden">
+                  {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
+                </div>
                 <span>{user?.firstName}</span>
               </Link>
             ) : (
@@ -410,7 +424,9 @@ export default function StorefrontPage() {
         <div className="p-3">
           {isLoggedIn ? (
             <Link href="/dashboard/customer" className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-orange-500 text-white hover:opacity-90 transition ${collapsed ? "lg:justify-center" : ""}`}>
-              <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center font-bold text-sm shrink-0">{initials}</div>
+              <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden">
+                {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
+              </div>
               <div className={`flex flex-col transition-all duration-300 ${collapsed ? "lg:hidden" : ""}`}>
                 <span className="text-xs font-bold">{user?.firstName} {user?.lastName}</span>
                 <span className="text-[10px] text-white/70">My Dashboard →</span>
@@ -554,6 +570,11 @@ export default function StorefrontPage() {
                   const isToggling = togWishlist[product._id];
                   const inWishlist = wishlist.has(product._id);
 
+                  // Dynamic Badge Logic
+                  const isNew = product.createdAt && (new Date() - new Date(product.createdAt)) < 7 * 24 * 60 * 60 * 1000; // Under 7 days old
+                  const isBestSeller = (product.totalSold || 0) >= 10; // Threshold for best seller
+                  const isTopRated = hasRating && ratingData.average >= 4.5 && ratingData.count >= 3;
+
                   return (
                     <div key={product._id} className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-800 group">
                       {/* Image */}
@@ -562,13 +583,21 @@ export default function StorefrontPage() {
                           ? <img src={img} alt={product.name} className="w-full h-full object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-500"/>
                           : <div className="w-full h-full flex items-center justify-center"><FiPackage className="text-gray-300 dark:text-gray-600 text-4xl"/></div>
                         }
-                        {/* Discount badge */}
-                        {hasDiscount && (
-                          <span className="absolute top-3 left-2.5 bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">-{product.discountPercentage}% OFF</span>
-                        )}
-                        {!hasDiscount && idx < 2 && (
-                          <span className={`absolute top-3 left-2.5 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow ${idx === 0 ? "bg-purple-500" : "bg-green-500"}`}>{idx === 0 ? "Featured" : "New"}</span>
-                        )}
+                        {/* Status Badges */}
+                        <div className="absolute top-3 left-2.5 flex flex-col gap-1.5 items-start">
+                          {hasDiscount && (
+                            <span className="bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">-{product.discountPercentage}% OFF</span>
+                          )}
+                          {!hasDiscount && isBestSeller && (
+                            <span className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">🔥 Best Seller</span>
+                          )}
+                          {!hasDiscount && !isBestSeller && isTopRated && (
+                            <span className="bg-purple-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">⭐ Top Rated</span>
+                          )}
+                          {!hasDiscount && !isBestSeller && !isTopRated && isNew && (
+                            <span className="bg-green-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">✨ New Arrival</span>
+                          )}
+                        </div>
                         {/* Wishlist btn */}
                         <button
                           onClick={() => handleToggleWishlist(product._id, product.name)}

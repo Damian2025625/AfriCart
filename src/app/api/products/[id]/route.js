@@ -5,6 +5,7 @@ import Review from '@/lib/mongodb/models/Review';
 import Category from '@/lib/mongodb/models/Category';
 import Subcategory from '@/lib/mongodb/models/Subcategory';
 import Vendor from '@/lib/mongodb/models/Vendor';
+import PowerHour from '@/lib/mongodb/models/PowerHour';
 
 export async function GET(request, { params }) {
   try {
@@ -12,7 +13,11 @@ export async function GET(request, { params }) {
 
     const { id } = await params;
 
-    const product = await Product.findById(id)
+    const product = await Product.findByIdAndUpdate(
+      id,
+      { $inc: { views: 1 } },
+      { new: true }
+    )
       .populate('categoryId', 'name slug')
       .populate('subcategoryId', 'name')
       .populate('vendorId', 'businessName city state logoUrl');
@@ -48,6 +53,13 @@ export async function GET(request, { params }) {
       }
     }
 
+    // Check for active Power Hour
+    const activePowerHour = await PowerHour.findOne({
+      productId: id,
+      status: 'ACTIVE',
+      endTime: { $gt: new Date() }
+    });
+
     // Transform product data
     const transformedProduct = {
       _id: product._id.toString(),
@@ -75,6 +87,8 @@ export async function GET(request, { params }) {
       sku: product.sku,
       images: product.images,
       features: product.features,
+      activeSlashId: product.activeSlashId,
+      hasActivePowerHour: !!activePowerHour,
       discountPercentage: product.discountPercentage,
       discountStartDate: product.discountStartDate,
       discountEndDate: product.discountEndDate,

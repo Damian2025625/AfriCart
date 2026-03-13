@@ -1,5 +1,5 @@
 export const PAYMENT_CONFIG = {
-  ACTIVE_PROVIDER: 'paystack',
+  ACTIVE_PROVIDER: process.env.ACTIVE_PAYMENT_PROVIDER || 'paystack',
   
   // Flutterwave Configuration
   flutterwave: {

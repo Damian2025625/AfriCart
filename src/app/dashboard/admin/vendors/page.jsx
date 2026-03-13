@@ -82,18 +82,19 @@ export default function AdminVendorsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Vendor Management</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Vendor Management</h1>
+          <p className="text-xs text-gray-500 mt-1 font-medium">
             {vendors.length} vendors · {verifiedCount} verified · {unverifiedCount} pending
           </p>
         </div>
         <button
           onClick={fetchVendors}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-sm self-start sm:self-auto"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all shadow-sm active:scale-95 self-start md:self-auto"
         >
-          <FiRefreshCw /> Refresh
+          <FiRefreshCw className={loading ? "animate-spin" : ""} />
+          <span>SYNC LIST</span>
         </button>
       </div>
 

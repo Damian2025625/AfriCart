@@ -5,6 +5,7 @@ import Cart from '@/lib/mongodb/models/Cart';
 import Product from '@/lib/mongodb/models/Product';
 import Vendor from '@/lib/mongodb/models/Vendor';
 import CustomProductPrice from '@/lib/mongodb/models/CustomProductPrice';
+import CommunitySlash from '@/lib/mongodb/models/CommunitySlash';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -71,30 +72,60 @@ export async function GET(request) {
       .filter(item => item.productId)
       .map(item => item.productId._id);
 
-    // Fetch all custom prices for this customer in one query
+    const now = new Date();
+
+    // Fetch all custom prices for this customer
     const customPrices = await CustomProductPrice.find({
       productId: { $in: productIds },
       customerId: customer._id,
       isActive: true,
     });
 
-    // Create a map for quick lookup
     const customPriceMap = {};
-    const now = new Date();
-    
     customPrices.forEach(cp => {
-      // Check if not expired
       if (!cp.expiresAt || new Date(cp.expiresAt) > now) {
         customPriceMap[cp.productId.toString()] = cp.customPrice;
       }
     });
 
-    // Transform cart items with custom prices
+    // Fetch all successful slash sessions for this customer
+    const slashSessions = await CommunitySlash.find({
+      productId: { $in: productIds },
+      status: 'SUCCESS',
+      'participants.userId': decoded.userId, // Use userId from token for consistency or customer.userId
+      purchaseWindowEndTime: { $gt: now },
+    });
+
+    const slashPriceMap = {};
+    slashSessions.forEach(ss => {
+      slashPriceMap[ss.productId.toString()] = ss.slashedPrice;
+    });
+
+    // Fetch all accepted price offers for this customer
+    const PriceOffer = (await import('@/lib/mongodb/models/PriceOffer')).default;
+    const acceptedOffers = await PriceOffer.find({
+      productId: { $in: productIds },
+      customerId: customer._id,
+      status: { $in: ['ACCEPTED', 'CLAIMED'] },
+      expiresAt: { $gt: now },
+    });
+
+    const offerPriceMap = {};
+    acceptedOffers.forEach(o => {
+      offerPriceMap[o.productId.toString()] = o.finalPrice || o.maxPrice;
+    });
+
+    // Transform cart items with custom prices, slashed prices, and negotiated offers
     const transformedItems = cart.items
-      .filter(item => item.productId) // Filter out items with deleted products
+      .filter(item => item.productId)
       .map(item => {
         const productId = item.productId._id.toString();
         const customPrice = customPriceMap[productId];
+        const slashedPrice = slashPriceMap[productId];
+        const offerPrice = offerPriceMap[productId];
+
+        // Preference: Negotiated Offer > Custom Price > Slashed Price > Regular Price
+        const effectivePrice = offerPrice || customPrice || slashedPrice || null;
 
         return {
           _id: item._id.toString(),
@@ -104,7 +135,8 @@ export async function GET(request) {
             _id: productId,
             name: item.productId.name,
             price: item.productId.price,
-            customPrice: customPrice || null, // ✅ Add custom price
+            customPrice: effectivePrice, // ✅ Use effective price
+            isSlashed: !!slashedPrice && !customPrice, // Mark if it came from a slash
             images: item.productId.images,
             discountPercentage: item.productId.discountPercentage,
             discountStartDate: item.productId.discountStartDate,

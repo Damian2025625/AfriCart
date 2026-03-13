@@ -251,7 +251,7 @@ orderSchema.index({ isMasterOrder: 1 });
 orderSchema.index({ isMasterOrder: 1, createdAt: -1 });
 orderSchema.index({ masterOrderId: 1 });
 orderSchema.index({ 'vendorSettlement.status': 1, vendorId: 1 });
-orderSchema.index({ 'dispute.isDisputed': 1 });
+orderSchema.index({ customerId: 1, isMasterOrder: 1, updatedAt: -1 });
 orderSchema.index({ 'dispute.isDisputed': 1, updatedAt: -1 });
 
 // ✅ HELPER METHOD: Calculate vendor settlement amount

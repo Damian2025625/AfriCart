@@ -25,7 +25,7 @@ export async function GET(request) {
     await connectDB();
 
     // 1. Fetch Disputed Orders
-    const disputedOrders = await Order.find({ 'dispute.isDisputed': true })
+    const disputedOrders = await Order.find({ 'dispute.isDisputed': true, isMasterOrder: true })
       .select('orderNumber orderStatus dispute customerId vendorId updatedAt')
       .populate('customerId', 'firstName lastName')
       .populate('vendorId', 'businessName')
@@ -90,6 +90,20 @@ export async function PATCH(request) {
     }
 
     await order.save();
+    
+    // ✅ If it's a master order, sync status to all sub-orders
+    if (order.isMasterOrder) {
+      await Order.updateMany(
+        { masterOrderId: order._id },
+        { 
+          $set: { 
+            'dispute.status': status,
+            'dispute.adminNote': adminNote,
+            ...( (status === 'RESOLVED' || status === 'REJECTED') ? { 'dispute.resolvedAt': new Date() } : {} )
+          } 
+        }
+      );
+    }
 
     return NextResponse.json({
       success: true,

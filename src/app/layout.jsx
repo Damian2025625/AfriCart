@@ -18,12 +18,23 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "AfriCart - Nigerian Marketplace",
   description: "Shop the best products in Nigeria",
+  applicationName: "AfriCart",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "AfriCart",
+  },
+};
+
+export const viewport = {
+  themeColor: "#f97316",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -34,6 +45,19 @@ export default function RootLayout({ children }) {
                   document.documentElement.classList.remove('dark')
                 }
               } catch (_) {}
+
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(
+                    function(registration) {
+                      console.log('AfriCart PWA: ServiceWorker registration successful');
+                    },
+                    function(err) {
+                      console.log('AfriCart PWA: ServiceWorker registration failed: ', err);
+                    }
+                  );
+                });
+              }
             `,
           }}
         />

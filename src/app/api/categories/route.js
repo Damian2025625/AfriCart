@@ -2,9 +2,17 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb/config';
 import Category from '@/lib/mongodb/models/Category';
 import Product from '@/lib/mongodb/models/Product';
+import { getCache, setCache } from '@/lib/cache';
 
 export async function GET() {
   try {
+    const cacheKey = 'all_categories_with_counts';
+    const cachedData = getCache(cacheKey);
+    if (cachedData) {
+      console.log(`[CategoriesAPI] Serving from cache`);
+      return NextResponse.json({ success: true, categories: cachedData });
+    }
+
     await connectDB();
 
     const categories = await Category.find({ isActive: true })
@@ -29,6 +37,9 @@ export async function GET() {
       ...cat,
       product_count: countMap[cat._id.toString()] || 0,
     }));
+
+    // Cache for 5 minutes (300s)
+    setCache(cacheKey, categoriesWithCount, 300);
 
     return NextResponse.json({
       success: true,

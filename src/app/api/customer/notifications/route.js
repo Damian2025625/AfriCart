@@ -50,11 +50,10 @@ export async function GET(request) {
       // 2. Fetch Conversations to get IDs
       Conversation.find({ customerId }).select('_id').lean(),
 
-      // 3. Fetch Recent Order Updates (last 7 days)
+      // 3. Fetch Recent Order Updates (last 7 days, all statuses)
       Order.find({
         customerId: userId,
         isMasterOrder: false,
-        orderStatus: { $in: ["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"] },
         updatedAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
       }).sort({ updatedAt: -1 }).limit(10).lean()
     ]);

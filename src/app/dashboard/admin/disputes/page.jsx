@@ -197,8 +197,8 @@ export default function AdminDisputesPage() {
                 <h3 className="text-lg font-bold text-gray-900 mb-6">Take Action</h3>
                 
                 <div className="space-y-4 mb-8">
-                  <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100 italic text-sm text-purple-900">
-                    <FiInfo className="inline-block mr-2 mb-1" />
+                  <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100 italic text-xs text-purple-900">
+                    <FiInfo className="inline-block mr-2 mb-1 text-sm" />
                     As admin, you can mediate this dispute. Changing the status will notify both parties.
                   </div>
 
@@ -217,7 +217,7 @@ export default function AdminDisputesPage() {
                   <button 
                     disabled={updating}
                     onClick={() => handleUpdateDispute('RESOLVED')}
-                    className="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 disabled:bg-gray-300"
+                    className="w-full py-3 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold flex items-center justify-center gap-2 disabled:bg-gray-300"
                   >
                     <FiCheckCircle />
                     Resolve Dispute
@@ -225,7 +225,7 @@ export default function AdminDisputesPage() {
                   <button 
                     disabled={updating}
                     onClick={() => handleUpdateDispute('REJECTED')}
-                    className="w-full py-4 bg-white border-2 border-red-500 text-red-500 hover:bg-red-50 rounded-2xl font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-3 text-xs bg-white border-2 border-red-500 text-red-500 hover:bg-red-50 rounded-lg font-bold flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <FiXCircle />
                     Reject/Deny Request

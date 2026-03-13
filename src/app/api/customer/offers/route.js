@@ -5,6 +5,7 @@ import PriceOffer from '@/lib/mongodb/models/PriceOffer';
 import Product from '@/lib/mongodb/models/Product';
 import Customer from '@/lib/mongodb/models/Customer';
 import Vendor from '@/lib/mongodb/models/Vendor';
+import PowerHour from '@/lib/mongodb/models/PowerHour';
 import { sendEmail } from '@/lib/email/nodemailer';
 import axios from 'axios'; // For SMS
 
@@ -111,6 +112,31 @@ export async function POST(request) {
       );
     }
 
+    // Check for active Power Hour (Auto-Accept)
+    const activePowerHour = await PowerHour.findOne({
+      productId: productId,
+      status: 'ACTIVE',
+      endTime: { $gt: new Date() }
+    });
+
+    let offerStatus = 'PENDING';
+    let finalPrice = null;
+
+    if (activePowerHour) {
+      const offerMin = parseFloat(minPrice);
+      const offerMax = parseFloat(maxPrice);
+      
+      // Calculate the shared range (overlap)
+      const sharedMax = Math.min(offerMax, activePowerHour.maxAcceptablePrice);
+      const sharedMin = Math.max(offerMin, activePowerHour.minAcceptablePrice);
+
+      // If the shared range is valid (customer max >= vendor min)
+      if (sharedMax >= sharedMin) {
+        offerStatus = 'ACCEPTED';
+        finalPrice = sharedMax; // Best possible price for the vendor within the agreed overlap
+      }
+    }
+
     // Create offer
     const offer = await PriceOffer.create({
       productId,
@@ -119,12 +145,15 @@ export async function POST(request) {
       minPrice: parseFloat(minPrice),
       maxPrice: parseFloat(maxPrice),
       customerNote: customerNote?.trim() || null,
-      status: 'PENDING',
+      status: offerStatus,
+      finalPrice,
+      acceptedAt: offerStatus === 'ACCEPTED' ? new Date() : null,
+      expiresAt: offerStatus === 'ACCEPTED' && activePowerHour ? activePowerHour.endTime : undefined,
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Price offer submitted successfully',
+      message: offerStatus === 'ACCEPTED' ? 'Offer auto-accepted by Power Hour! You can now finalize the sale.' : 'Price offer submitted successfully',
       offer: {
         _id: offer._id,
         minPrice: offer.minPrice,
@@ -226,7 +255,7 @@ export async function PATCH(request) {
       );
     }
 
-    if (!['ACCEPT_COUNTER', 'COUNTER_BACK', 'DECLINE_COUNTER'].includes(action)) {
+    if (!['ACCEPT_COUNTER', 'COUNTER_BACK', 'DECLINE_COUNTER', 'CLAIM_OFFER'].includes(action)) {
       return NextResponse.json(
         { success: false, message: 'Invalid action' },
         { status: 400 }
@@ -244,6 +273,22 @@ export async function PATCH(request) {
         { success: false, message: 'Offer not found' },
         { status: 404 }
       );
+    }
+
+    if (action === 'CLAIM_OFFER') {
+      if (offer.status !== 'ACCEPTED') {
+        return NextResponse.json(
+          { success: false, message: 'Only accepted offers can be claimed' },
+          { status: 400 }
+        );
+      }
+      offer.status = 'CLAIMED';
+      await offer.save();
+      return NextResponse.json({
+        success: true,
+        message: 'Offer claimed successfully',
+        offer
+      });
     }
 
     if (offer.status !== 'COUNTERED') {

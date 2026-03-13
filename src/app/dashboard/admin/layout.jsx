@@ -103,16 +103,16 @@ export default function AdminLayout({ children }) {
     <div className="min-h-screen bg-gray-50 w-full flex">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b flex items-center justify-between px-4 z-50 shadow-sm">
-        <button onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)} className="text-2xl text-gray-700">
+        <button onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)} className="p-2 text-2xl text-gray-700">
           {mobileSidebarOpen ? <FiX /> : <FiMenu />}
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-lg flex items-center justify-center">
-            <FiShield className="text-white text-sm" />
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-lg flex items-center justify-center shrink-0">
+            <FiShield className="text-white text-xs" />
           </div>
-          <span className="font-bold text-gray-900 text-sm">Admin Panel</span>
+          <span className="font-bold text-gray-900 text-sm whitespace-nowrap">Admin Panel</span>
         </div>
-        <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold text-xs">
+        <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 ring-2 ring-purple-100">
           {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
         </div>
       </div>
@@ -225,9 +225,9 @@ export default function AdminLayout({ children }) {
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-16 lg:pt-13 ${sidebarCollapsed ? "lg:ml-15" : "lg:ml-58"}`}
+        className={`flex-1 transition-all duration-300 pt-16 lg:pt-13 ${sidebarCollapsed ? "lg:ml-15" : "lg:ml-58"} min-w-0`}
       >
-        <div className="p-4 py-8">{children}</div>
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8 w-full max-w-full overflow-x-hidden">{children}</div>
       </main>
     </div>
   );

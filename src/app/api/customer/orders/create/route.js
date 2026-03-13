@@ -6,6 +6,7 @@ import Cart from "@/lib/mongodb/models/Cart";
 import Product from "@/lib/mongodb/models/Product";
 import Vendor from "@/lib/mongodb/models/Vendor";
 import User from "@/lib/mongodb/models/User";
+import CommunitySlash from "@/lib/mongodb/models/CommunitySlash";
 import { sendOrderNotifications } from "@/lib/notifications";
 
 // ✅ Configuration: Platform commission rate
@@ -133,10 +134,71 @@ export async function POST(request) {
 
       const vendorId = product.vendorId.toString();
 
+      // ✅ Check for Price Offer / Slash Price if no custom price or as validation
+      let itemPrice = product.price;
+
+      // 1. Check for traditional custom price
+      if (item.customPrice) {
+        itemPrice = item.customPrice;
+      } else {
+        // 2. Check for Accepted Price Offer (Make an Offer)
+        const PriceOffer = (await import("@/lib/mongodb/models/PriceOffer")).default;
+        const acceptedOffer = await PriceOffer.findOne({
+          productId: product._id,
+          customerId: decoded.userId, // This needs to be the Customer model ID, but we have userId. 
+          // Wait, decoded.userId is the User ID. PriceOffer uses Customer model ID.
+          status: 'ACCEPTED',
+          expiresAt: { $gt: new Date() }
+        }).populate('customerId');
+
+        // We need to verify if this PriceOffer belongs to the current user
+        // The customer model ID is linked to the user ID.
+        
+        // Actually, let's fetch the customer first or use a join-style check.
+        // But since we are inside a loop, let's be efficient.
+        
+        // Revised logic: Find customer if not already found
+        const Customer = (await import("@/lib/mongodb/models/Customer")).default;
+        const customerProfile = await Customer.findOne({ userId: decoded.userId });
+        
+        const realAcceptedOffer = await PriceOffer.findOne({
+          productId: product._id,
+          customerId: customerProfile?._id,
+          status: { $in: ['ACCEPTED', 'CLAIMED'] },
+          expiresAt: { $gt: new Date() }
+        });
+
+        if (realAcceptedOffer) {
+          itemPrice = realAcceptedOffer.finalPrice || realAcceptedOffer.maxPrice;
+          
+          // ✅ Mark offer as COMPLETED
+          await PriceOffer.findByIdAndUpdate(realAcceptedOffer._id, { status: 'COMPLETED' });
+          console.log(`✅ Marked PriceOffer ${realAcceptedOffer._id} as COMPLETED`);
+        } else {
+          // 3. Fallback backend check for successful community slash
+          const activeSlash = await CommunitySlash.findOne({
+            productId: product._id,
+            status: 'SUCCESS',
+            'participants.userId': decoded.userId,
+            purchaseWindowEndTime: { $gt: new Date() }
+          });
+
+          if (activeSlash) {
+            itemPrice = activeSlash.slashedPrice;
+            
+            // ✅ Mark participant as having purchased
+            await CommunitySlash.updateOne(
+              { _id: activeSlash._id, "participants.userId": decoded.userId },
+              { $set: { "participants.$.hasPurchased": true } }
+            );
+          }
+        }
+      }
+
       const orderItem = {
         productId: product._id,
         name: product.name,
-        price: item.customPrice || product.price,
+        price: itemPrice,
         quantity: item.quantity,
         image: product.images?.[0] || null,
         vendorId: product.vendorId,

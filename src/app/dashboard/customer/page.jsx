@@ -12,6 +12,7 @@ import {
   FiPackage,
   FiArrowRight,
   FiEye,
+  FiZap,
 } from "react-icons/fi";
 import { LuBookCopy, LuCoffee, LuSmartphone } from "react-icons/lu";
 import { IoShirtOutline, IoSparklesOutline } from "react-icons/io5";
@@ -19,6 +20,7 @@ import { LuApple, LuHammer, LuPaintbrushVertical, LuCar } from "react-icons/lu";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
+import axios from "axios";
 
 export default function CustomerPage() {
   const router = useRouter();
@@ -93,35 +95,31 @@ export default function CustomerPage() {
 
   const fetchData = async () => {
     try {
-      // ── Step 1: Categories load first (fast, small query) ──
-      const categoriesResponse = await fetch("/api/categories");
-      const categoriesData = await categoriesResponse.json();
+      const token = localStorage.getItem("authToken");
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-      if (categoriesData.success) {
-        setCategories((categoriesData.categories || []).slice(0, 8));
+      const [categoriesRes, productsRes] = await Promise.all([
+        axios.get("/api/categories"),
+        axios.get("/api/products/featured?limit=20", config)
+      ]);
+
+      if (categoriesRes.data.success) {
+        setCategories((categoriesRes.data.categories || []).slice(0, 8));
       }
-      setCategoriesLoading(false); // ← categories appear here
-
-      // ── Step 2: Products load after (lean single query, no ratings) ──
-      const productsResponse = await fetch("/api/products/featured?limit=20");
-      const productsData = await productsResponse.json();
-
-      const products = productsData.success ? (productsData.products || []) : [];
+      
+      const products = productsRes.data.success ? (productsRes.data.products || []) : [];
       setFeaturedProducts(products);
-      setProductsLoading(false); // ← all product cards appear here
+      
+      setCategoriesLoading(false);
+      setProductsLoading(false);
 
-      // ── Step 3: Ratings load in background (non-blocking) ──
+      // ── Step 2: Ratings load in background (non-blocking) ──
       if (products.length > 0) {
         const productIds = products.map((p) => p._id);
-        fetch("/api/products/ratings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productIds }),
-        })
-          .then((r) => r.json())
-          .then((ratingsData) => {
-            if (ratingsData.success) {
-              setProductRatings((prev) => ({ ...prev, ...ratingsData.ratings }));
+        axios.post("/api/products/ratings", { productIds })
+          .then((res) => {
+            if (res.data.success) {
+              setProductRatings((prev) => ({ ...prev, ...res.data.ratings }));
             }
           })
           .catch(() => {});
@@ -139,18 +137,16 @@ export default function CustomerPage() {
       const token = localStorage.getItem("authToken");
       if (!token) return;
 
-      const response = await fetch("/api/customer/wishlist", {
+      const response = await axios.get("/api/customer/wishlist", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data.success) {
         // Create a Set of product IDs in wishlist
         const productIds = new Set(
-          data.wishlist.map((item) => item.productId._id || item.productId)
+          response.data.wishlist.map((item) => item.productId._id || item.productId)
         );
         setWishlistItems(productIds);
       }
@@ -176,31 +172,27 @@ export default function CustomerPage() {
 
       if (isInWishlist) {
         // Remove from wishlist - first get wishlist to find the item ID
-        const response = await fetch("/api/customer/wishlist", {
+        const response = await axios.get("/api/customer/wishlist", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        const data = await response.json();
-        const wishlistItem = data.wishlist.find(
+        const wishlistItem = response.data.wishlist.find(
           (item) => (item.productId._id || item.productId) === productId
         );
 
         if (wishlistItem) {
-          const deleteResponse = await fetch(
+          const deleteResponse = await axios.delete(
             `/api/customer/wishlist/${wishlistItem._id}`,
             {
-              method: "DELETE",
               headers: {
                 Authorization: `Bearer ${token}`,
               },
             }
           );
 
-          const deleteData = await deleteResponse.json();
-
-          if (deleteData.success) {
+          if (deleteResponse.data.success) {
             toast.success("Removed from wishlist");
             setWishlistItems((prev) => {
               const newSet = new Set(prev);
@@ -211,22 +203,21 @@ export default function CustomerPage() {
         }
       } else {
         // Add to wishlist
-        const response = await fetch("/api/customer/wishlist/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ productId }),
-        });
+        const response = await axios.post(
+          "/api/customer/wishlist/add",
+          { productId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-        const data = await response.json();
-
-        if (data.success) {
+        if (response.data.success) {
           toast.success(`${productName} added to wishlist`);
           setWishlistItems((prev) => new Set(prev).add(productId));
         } else {
-          toast.error(data.message || "Failed to add to wishlist");
+          toast.error(response.data.message || "Failed to add to wishlist");
         }
       }
     } catch (error) {
@@ -280,25 +271,24 @@ export default function CustomerPage() {
         return;
       }
 
-      const response = await fetch("/api/customer/cart/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const response = await axios.post(
+        "/api/customer/cart/add",
+        {
           productId: product._id,
           quantity: 1,
-        }),
-      });
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data.success) {
         toast.success(`${product.name} added to cart!`);
         window.dispatchEvent(new Event("cartUpdated"));
       } else {
-        toast.error(data.message || "Failed to add to cart");
+        toast.error(response.data.message || "Failed to add to cart");
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -590,11 +580,27 @@ export default function CustomerPage() {
             const reviewCount = rData ? (rData.count || rData.totalRatings || 0) : 0;
 
             const badges = [];
-            if (index === 0) {
-              badges.push({ text: "Featured", color: "bg-purple-500" });
+
+            const isNew = product.createdAt && (new Date() - new Date(product.createdAt)) < 7 * 24 * 60 * 60 * 1000;
+            const isBestSeller = (product.totalSold || 0) >= 10;
+            const isTopRated = hasRatings && averageRating >= 4.5 && reviewCount >= 3;
+
+            if (isBestSeller) {
+              badges.push({ text: "🔥 Best Seller", color: "bg-gradient-to-r from-orange-500 to-yellow-500" });
+            } else if (isTopRated) {
+              badges.push({ text: "⭐ Top Rated", color: "bg-purple-500" });
+            } else if (isNew) {
+              badges.push({ text: "✨ New Arrival", color: "bg-green-500" });
             }
-            if (index === 1) {
-              badges.push({ text: "New", color: "bg-green-500" });
+
+            if (product.activeSlashId) {
+              badges.push({ text: "🔥 Group Buy", color: "bg-linear-to-r from-orange-500 to-red-500 animate-pulse" });
+            }
+            if (product.hasActivePowerHour) {
+              badges.push({ text: "⚡ Power Hour", color: "bg-linear-to-r from-blue-500 to-indigo-600" });
+            }
+            if (product.hasAcceptedOffer) {
+              badges.push({ text: "✅ Offer Accepted", color: "bg-linear-to-r from-green-500 to-emerald-600 shadow-green-100" });
             }
 
             return (
@@ -618,16 +624,13 @@ export default function CustomerPage() {
                     )}
                   </div>
 
-                  {hasActiveDiscount && (
-                    <div className="absolute top-4 left-2.5">
-                      <span className="bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-lg">
-                        -{product.discountPercentage}% OFF
-                      </span>
-                    </div>
-                  )}
-
-                  {badges.length > 0 && !hasActiveDiscount && (
+                  {(hasActiveDiscount || badges.length > 0) && (
                     <div className="absolute top-4 left-2.5 flex flex-col gap-1">
+                      {hasActiveDiscount && (
+                        <span className="bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-lg">
+                          -{product.discountPercentage}% OFF
+                        </span>
+                      )}
                       {badges.map((badge, idx) => (
                         <span
                           key={idx}
@@ -739,18 +742,12 @@ export default function CustomerPage() {
                     )}
                   </div>
 
-                  <div className="mb-2 flex items-center gap-2">
-                    {hasActiveDiscount ? (
-                      <>
-                        <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                          {formatCurrency(discountedPrice)}
-                        </span>
-                        <span className="text-xs text-gray-400 dark:text-gray-500 line-through">
-                          {formatCurrency(product.price)}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm md:text-base font-black text-gray-900 dark:text-white">
+                      {formatCurrency(product.hasAcceptedOffer ? product.exclusivePrice : discountedPrice)}
+                    </span>
+                    {(hasActiveDiscount || product.hasAcceptedOffer) && (
+                      <span className="text-[10px] md:text-xs text-gray-400 line-through">
                         {formatCurrency(product.price)}
                       </span>
                     )}

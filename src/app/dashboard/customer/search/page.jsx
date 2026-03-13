@@ -50,7 +50,10 @@ function SearchResults() {
   const fetchProducts = async (q) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`);
+      const token = localStorage.getItem("authToken");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`, { headers });
       const data = await res.json();
       if (data.success) {
         setProducts(data.products || []);
@@ -248,11 +251,20 @@ function SearchResults() {
                       </div>
                     )}
                   </div>
-                  {hasActiveDiscount && (
-                    <div className="absolute top-4 left-2.5">
-                      <span className="bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-lg">-{product.discountPercentage}% OFF</span>
+                    <div className="absolute top-4 left-2.5 flex flex-col gap-1">
+                      {hasActiveDiscount && (
+                        <span className="bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-lg">-{product.discountPercentage}% OFF</span>
+                      )}
+                      {product.activeSlashId && (
+                        <span className="bg-linear-to-r from-orange-500 to-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">🔥 Group Buy</span>
+                      )}
+                      {product.hasActivePowerHour && (
+                        <span className="bg-linear-to-r from-blue-500 to-indigo-600 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-lg">⚡ Power Hour</span>
+                      )}
+                      {product.hasAcceptedOffer && (
+                        <span className="bg-linear-to-r from-green-500 to-emerald-600 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-lg">✅ Offer Accepted</span>
+                      )}
                     </div>
-                  )}
                   <button
                     onClick={() => handleToggleWishlist(product._id, product.name)}
                     disabled={togglingWishlist[product._id]}
@@ -286,10 +298,13 @@ function SearchResults() {
                     )}
                   </div>
                   <div className="mb-2 flex items-center gap-2">
-                    {hasActiveDiscount ? (
-                      <><span className="text-lg font-bold text-green-600">{formatCurrency(discountedPrice)}</span><span className="text-xs text-gray-400 line-through">{formatCurrency(product.price)}</span></>
-                    ) : (
-                      <span className="text-lg font-bold text-gray-900">{formatCurrency(product.price)}</span>
+                    <span className="text-lg font-bold text-gray-900">
+                      {formatCurrency(product.hasAcceptedOffer ? product.exclusivePrice : (hasActiveDiscount ? discountedPrice : product.price))}
+                    </span>
+                    {(hasActiveDiscount || product.hasAcceptedOffer) && (
+                      <span className="text-xs text-gray-400 line-through">
+                        {formatCurrency(product.price)}
+                      </span>
                     )}
                   </div>
                   <div className="flex gap-2">

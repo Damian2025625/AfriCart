@@ -298,7 +298,7 @@ export default function VendorOverview() {
       buttonGradient: "from-white to-white",
       buttonTextColor: "text-gray-900",
       buttonBorder: "border border-gray-200",
-      href: "/dashboard/vendor/analytics",
+      href: "/dashboard/vendor/promotions",
     },
   ];
 
@@ -494,7 +494,7 @@ export default function VendorOverview() {
       </div>
 
       {/* Statistics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div id="overview-stats" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((stat, index) => (
           <div
             key={index}
@@ -524,7 +524,7 @@ export default function VendorOverview() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div id="overview-actions" className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {quickActions.map((action, index) =>
           action.href ? (
             <Link
@@ -565,6 +565,7 @@ export default function VendorOverview() {
           ) : (
             <button
               key={index}
+              id="action-add-product"
               onClick={action.onClick}
               className={`${action.cardBg} rounded-2xl p-6 transition-all duration-300 hover:shadow-sm block w-full text-left`}
             >
@@ -590,7 +591,7 @@ export default function VendorOverview() {
       </div>
 
       {/* Recent Orders Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+      <div id="overview-orders" className="bg-white rounded-2xl shadow-sm border border-gray-100">
         <div className="p-4 md:p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-100 rounded-lg">

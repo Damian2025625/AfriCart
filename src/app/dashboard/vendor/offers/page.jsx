@@ -272,7 +272,7 @@ export default function VendorOffersPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div id="offers-stats" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
           <div className="flex items-center justify-between">
             <div>
@@ -331,7 +331,7 @@ export default function VendorOffersPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-2 overflow-x-auto">
+      <div id="offers-tabs" className="mb-6 flex gap-2 overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const count = allOffers.filter((o) => o.status === tab.id).length;
@@ -366,7 +366,7 @@ export default function VendorOffersPage() {
 
       {/* Offers List */}
       {filteredOffers.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center">
+        <div id="offers-list" className="bg-white rounded-2xl p-12 text-center">
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <FiTag className="w-10 h-10 text-gray-400" />
           </div>
@@ -378,7 +378,7 @@ export default function VendorOffersPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div id="offers-list" className="space-y-4">
           {filteredOffers.map((offer) => {
             const timeRemaining = getTimeRemaining(offer.expiresAt);
             const latestCounter = getLatestCounterOffer(offer);
@@ -570,7 +570,7 @@ export default function VendorOffersPage() {
                   <div className="lg:w-72 shrink-0">
                     {offer.status === "PENDING" || offer.status === "COUNTERED" ? (
                       !isResponding ? (
-                        <div className="space-y-2">
+                        <div id="offer-actions" className="space-y-2">
                           <button
                             onClick={() => {
                               setRespondingTo(offer._id);

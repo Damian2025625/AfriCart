@@ -77,6 +77,11 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    activeSlashId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'CommunitySlash',
+      default: null,
+    },
   },
   {
     timestamps: true,

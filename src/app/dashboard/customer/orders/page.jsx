@@ -37,7 +37,11 @@ export default function CustomerOrdersPage() {
     { id: "CANCELLED", label: "Cancelled", icon: FiXCircle },
   ];
 
+  const hasInitialized = React.useRef(false);
+
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
     fetchOrders(1);
   }, [activeTab]);
 

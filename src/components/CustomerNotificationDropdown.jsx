@@ -26,7 +26,7 @@ export default function CustomerNotificationDropdown() {
   const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { counts, refresh } = useSync();
+  const { counts, refresh, clearNotifications } = useSync();
 
   useEffect(() => {
     if (isOpen) {
@@ -66,7 +66,7 @@ export default function CustomerNotificationDropdown() {
   const markAllAsRead = () => {
     const allIds = notifications.map(n => n.id);
     localStorage.setItem("readNotifications", JSON.stringify(allIds));
-    refresh(); // Update the badge count immediately via sync context
+    clearNotifications(); // Zero the badge immediately — server will restore only if new items arrive
   };
 
   const handleNotificationClick = (id) => {

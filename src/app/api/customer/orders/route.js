@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import connectDB from '@/lib/mongodb/config';
 import Order from '@/lib/mongodb/models/Order';
+import { getCache, setCache } from "@/lib/cache";
 
 export async function GET(request) {
   const start = Date.now();
@@ -36,10 +37,18 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
+    const status = searchParams.get('status') || 'ALL';
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 5; // Reduced to 5 per page
     const skip = (page - 1) * limit;
+
+    // Check Cache
+    const cacheKey = `orders_${decoded.userId}_${status}_${page}_${limit}`;
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      console.log(`[OrdersAPI:${requestId}] Serving from cache`);
+      return NextResponse.json(cachedData);
+    }
 
     const dbStart = Date.now();
     await connectDB();
@@ -86,6 +95,10 @@ export async function GET(request) {
 
     const end = Date.now();
     console.log(`[OrdersAPI:${requestId}] Request total time: ${end - start}ms`);
+
+    // Cache for 30s
+    setCache(cacheKey, resBody, 30);
+
     return NextResponse.json(resBody);
   } catch (error) {
     console.error(`[OrdersAPI:${requestId}] Error:`, error);

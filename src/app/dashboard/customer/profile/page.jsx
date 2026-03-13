@@ -34,6 +34,7 @@ export default function CustomerSettingsAndProfile() {
     state: "",
     city: "",
     deliveryAddress: "",
+    profilePicture: null,
   });
 
   // Security State
@@ -96,6 +97,20 @@ export default function CustomerSettingsAndProfile() {
     return { ...prev, [key]: newVal };
   });
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) return toast.error('Please upload an image file');
+      if (file.size > 2 * 1024 * 1024) return toast.error('Image size must be less than 2MB');
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, profilePicture: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleProfileSave = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -107,7 +122,12 @@ export default function CustomerSettingsAndProfile() {
         body: JSON.stringify(formData)
       });
       const data = await response.json();
-      if (data.success) toast.success("Profile saved successfully!");
+      if (data.success) {
+        toast.success("Profile saved successfully!");
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event("profileUpdated"));
+        }
+      }
       else toast.error(data.message || "Failed to update profile");
     } catch {
       toast.error("Error saving profile");
@@ -210,12 +230,17 @@ export default function CustomerSettingsAndProfile() {
             <div className="max-w-3xl animate-in slide-in-from-right-4 duration-300">
               <div className="flex items-center gap-6 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
                 <div className="relative group shrink-0">
-                  <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center text-3xl font-bold text-orange-600 border-2 border-white dark:border-gray-900 shadow-sm">
-                    {formData.firstName?.[0]}{formData.lastName?.[0]}
+                  <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center text-3xl font-bold text-orange-600 border-2 border-white dark:border-gray-900 shadow-sm overflow-hidden">
+                    {formData.profilePicture ? (
+                      <img src={formData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <>{formData.firstName?.[0]}{formData.lastName?.[0]}</>
+                    )}
                   </div>
-                  <button className="absolute bottom-0 right-0 p-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 hover:text-orange-600 shadow-sm">
+                  <label className="cursor-pointer absolute bottom-0 right-0 p-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 hover:text-orange-600 shadow-sm">
                     <FiCamera size={14} />
-                  </button>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                  </label>
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">{formData.firstName} {formData.lastName}</h2>

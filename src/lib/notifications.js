@@ -85,6 +85,50 @@ export async function sendSMS(phoneNumber, message) {
   }
 }
 
+// ✅ NEW: Notify participants when a Community Slash target is reached
+export async function sendSlashSuccessNotifications({ participants, product, slashedPrice }) {
+  const notificationPromises = [];
+
+  for (const part of participants) {
+    if (!part.userId?.email && !part.userId?.phone) continue;
+
+    const user = part.userId;
+    const userName = user.firstName || 'Shopper';
+    
+    // SMS Message
+    const smsMessage = `🔥 GROUP BUY SUCCESS! 
+The target for "${product.name}" has been reached! 
+You can now buy it at the slashed price of ${formatCurrency(slashedPrice)} for the next 24 hours.
+Login to AfriCart now!`;
+
+    // Email HTML
+    const emailHTML = `
+      <div style="font-family: sans-serif; color: #333;">
+        <h1 style="color: #f97316;">🔥 Group Buy Success!</h1>
+        <p>Hi ${userName},</p>
+        <p>Great news! The group buy target for <strong>${product.name}</strong> has been reached.</p>
+        <p>You can now purchase this item at the exclusive slashed price of <strong>${formatCurrency(slashedPrice)}</strong>.</p>
+        <p style="padding: 15px; background: #fff7ed; border-radius: 8px; border-left: 4px solid #f97316;">
+          <strong>⚡ Hurry:</strong> This price is only available for the next 24 hours!
+        </p>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/customer/products/${product._id}" 
+           style="display: inline-block; padding: 12px 24px; background: #f97316; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px;">
+          Buy Now →
+        </a>
+      </div>
+    `;
+
+    if (user.phone) notificationPromises.push(sendSMS(user.phone, smsMessage));
+    if (user.email) notificationPromises.push(sendEmail({
+      to: user.email,
+      subject: `🔥 Group Buy Success: ${product.name}`,
+      html: emailHTML,
+    }));
+  }
+
+  return Promise.allSettled(notificationPromises);
+}
+
 // Main notification function
 export async function sendOrderNotifications({ vendor, vendorUser, order, customer }) {
   // ✅ Get vendor info from the User model

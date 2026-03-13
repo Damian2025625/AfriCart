@@ -39,6 +39,7 @@ export async function GET(request) {
         lastName: user.lastName,
         email: user.email,
         phone: user.phone,
+        profilePicture: user.profilePicture || null,
         country: customer?.country || '',
         state: customer?.state || '',
         city: customer?.city || '',
@@ -76,7 +77,8 @@ export async function PUT(request) {
       country, 
       state, 
       city, 
-      deliveryAddress
+      deliveryAddress,
+      profilePicture,
     } = body;
 
     await connectDB();
@@ -93,6 +95,7 @@ export async function PUT(request) {
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (phone) user.phone = phone;
+    if (profilePicture !== undefined) user.profilePicture = profilePicture;
 
     await user.save();
 
@@ -129,6 +132,7 @@ export async function PUT(request) {
         lastName: user.lastName,
         email: user.email,
         phone: user.phone,
+        profilePicture: user.profilePicture || null,
         country: customer.country,
         state: customer.state,
         city: customer.city,

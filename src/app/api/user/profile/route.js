@@ -65,6 +65,7 @@ export async function GET(request) {
         lastName: user.lastName,
         phone: user.phone,
         role: user.role,
+        profilePicture: user.profilePicture || null,
       },
       vendor: vendorData ? {
         id: vendorData._id,

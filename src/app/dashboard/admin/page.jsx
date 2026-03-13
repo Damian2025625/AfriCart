@@ -54,10 +54,10 @@ function StatCard({ title, value, subtitle, icon: Icon, iconBg, trend, trendLabe
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col gap-4 hover:shadow-md transition-shadow duration-200">
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 leading-tight">{title}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{value}</p>
+          {subtitle && <p className="text-[10px] text-gray-400 mt-1 truncate">{subtitle}</p>}
         </div>
         <div className={`w-11 h-11 ${iconBg} rounded-xl flex items-center justify-center shrink-0`}>
           <Icon className="text-xl text-white" />
@@ -156,66 +156,47 @@ export default function AdminDashboard() {
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-lg flex items-center justify-center">
-              <FiShield className="text-white text-xs" />
+          <div className="flex items-center gap-2 mb-1.5 font-bold">
+            <div className="w-6 h-6 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-lg flex items-center justify-center shrink-0 shadow-md shadow-purple-200">
+              <FiShield className="text-white text-[10px]" />
             </div>
-            <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">Admin Panel</span>
+            <span className="text-[10px] text-purple-600 uppercase tracking-widest">Master Overview</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Platform Overview</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Admin Intelligence</h1>
+          <p className="text-xs text-gray-500 mt-0.5 font-medium">
+            {new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" })}
           </p>
         </div>
         <button
           onClick={fetchStats}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm self-start sm:self-auto"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all shadow-sm active:scale-95"
         >
-          <FiRefreshCw className="text-sm" />
-          Refresh
+          <FiRefreshCw className={`text-xs ${loading ? 'animate-spin' : ''}`} />
+          <span>SYNC SYSTEM</span>
         </button>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Vendors"
-          value={vendors.total.toLocaleString()}
-          subtitle={`+${vendors.newThisMonth} new this month`}
-          icon={RiStoreLine}
-          iconBg="bg-gradient-to-br from-orange-400 to-orange-600"
-          trend={vendors.newThisMonth}
-          trendLabel={`${vendors.newThisMonth} joined this month`}
-        />
-        <StatCard
-          title="Total Customers"
-          value={customers.total.toLocaleString()}
-          subtitle={`+${customers.newThisMonth} new this month`}
-          icon={FiUsers}
-          iconBg="bg-gradient-to-br from-blue-500 to-blue-700"
-          trend={customers.newThisMonth}
-          trendLabel={`${customers.newThisMonth} joined this month`}
-        />
-        <StatCard
-          title="Total Orders"
-          value={orders.total.toLocaleString()}
-          subtitle={`${orders.thisMonth} this month`}
-          icon={FiPackage}
-          iconBg="bg-gradient-to-br from-indigo-500 to-indigo-700"
-          trend={parseFloat(orderGrowth)}
-          trendLabel={`${orderGrowth > 0 ? "+" : ""}${orderGrowth}% vs last month`}
-        />
-        <StatCard
-          title="Platform Commission"
-          value={formatCurrency(revenue.platform)}
-          subtitle="3% of all verified payments"
-          icon={FiDollarSign}
-          iconBg="bg-gradient-to-br from-green-500 to-green-700"
-          trend={1}
-          trendLabel={`${formatCurrency(revenue.total)} total GMV`}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { title: "Total Vendors", value: vendors.total, sub: `${vendors.newThisMonth} new`, icon: RiStoreLine, bg: "from-orange-400 to-orange-600", trend: vendors.newThisMonth, label: `+${vendors.newThisMonth} month` },
+          { title: "Total Customers", value: customers.total, sub: `${customers.newThisMonth} new`, icon: FiUsers, bg: "from-blue-500 to-blue-700", trend: customers.newThisMonth, label: `+${customers.newThisMonth} month` },
+          { title: "Total Orders", value: orders.total, sub: `${orders.thisMonth} month`, icon: FiPackage, bg: "from-indigo-500 to-indigo-700", trend: orderGrowth, label: `${orderGrowth}% growth` },
+          { title: "Commission", value: formatCurrency(revenue.platform), sub: `${formatCurrency(revenue.total)} GMV`, icon: FiDollarSign, bg: "from-green-500 to-green-700", trend: 1, label: "Live Stats" }
+        ].map((stat, i) => (
+          <StatCard
+            key={i}
+            title={stat.title}
+            value={stat.value.toLocaleString()}
+            subtitle={stat.sub}
+            icon={stat.icon}
+            iconBg={`bg-gradient-to-br ${stat.bg}`}
+            trend={stat.trend}
+            trendLabel={stat.label}
+          />
+        ))}
       </div>
 
       {/* Paystack Live Balance Banner */}

@@ -40,38 +40,27 @@ export async function GET(request) {
     };
 
     if (role === "CUSTOMER") {
-      const customer = await Customer.findOne({ userId }).lean();
+      const pStart = Date.now();
+      
+      // Parallelize identifying the customer and the counts
+      const customer = await Customer.findOne({ userId }).select('_id').lean();
       if (!customer) return NextResponse.json(data);
 
-      const [cart, pendingOffers, unreadMessages, recentUpdates] = await Promise.all([
-        // 1. Cart Count
+      const [cartData, offersCount, messagesData, ordersCount] = await Promise.all([
         Cart.findOne({ customerId: customer._id }).select("items").lean(),
-        
-        // 2. Pending/Actionable Offers
-        PriceOffer.countDocuments({
-          customerId: customer._id,
-          status: { $in: ["ACCEPTED", "COUNTERED"] }
-        }),
-
-        // 3. Unread Messages Count (Total from all conversations)
+        PriceOffer.countDocuments({ customerId: customer._id, status: { $in: ["ACCEPTED", "COUNTERED"] } }),
         Conversation.aggregate([
           { $match: { customerId: customer._id } },
           { $group: { _id: null, total: { $sum: "$unreadCount" } } }
         ]),
-
-        // 4. Notification Count (Recent order status changes)
-        // We simulate the notification logic by checking orders updated in the last 24h
-        Order.countDocuments({
-          customerId: userId,
-          isMasterOrder: false,
-          updatedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-        })
+        Order.countDocuments({ customerId: userId, isMasterOrder: false, updatedAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } })
       ]);
 
-      data.counts.cart = cart?.items?.length || 0;
-      data.counts.offers = pendingOffers;
-      data.counts.messages = unreadMessages[0]?.total || 0;
-      data.counts.notifications = data.counts.offers + data.counts.messages + recentUpdates;
+      data.counts.cart = cartData?.items?.length || 0;
+      data.counts.offers = offersCount;
+      data.counts.messages = messagesData[0]?.total || 0;
+      data.counts.notifications = data.counts.offers + data.counts.messages + ordersCount;
+      console.log(`Sync optimized queries took ${Date.now() - pStart}ms`);
 
     } else if (role === "VENDOR") {
       const vendor = await Vendor.findOne({ userId }).lean();

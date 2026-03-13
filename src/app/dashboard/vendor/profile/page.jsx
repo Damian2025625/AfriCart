@@ -37,6 +37,7 @@ export default function VendorSettingsAndProfile() {
     country: "",
     state: "",
     city: "",
+    profilePicture: null,
   });
 
   // Security State
@@ -80,7 +81,9 @@ export default function VendorSettingsAndProfile() {
       const response = await fetch("https://api.paystack.co/bank?currency=NGN");
       const result = await response.json();
       if (result.status) {
-        setBanks(result.data);
+        // Paystack sometimes returns duplicate bank entries, filter them by code
+        const uniqueBanks = Array.from(new Map(result.data.map(item => [item.code, item])).values());
+        setBanks(uniqueBanks);
       }
     } catch (error) {
       console.error("Error fetching banks:", error);
@@ -130,6 +133,7 @@ export default function VendorSettingsAndProfile() {
           businessDescription: data.vendor?.description || "",
           businessAddress: data.vendor?.businessAddress || "",
           businessPhone: data.vendor?.businessPhone || "",
+          profilePicture: data.user?.profilePicture || null,
         }));
       }
     } catch (error) {
@@ -164,13 +168,43 @@ export default function VendorSettingsAndProfile() {
     return { ...prev, [key]: newVal };
   });
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) return toast.error('Please upload an image file');
+      if (file.size > 2 * 1024 * 1024) return toast.error('Image size must be less than 2MB');
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, profilePicture: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleProfileSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setTimeout(() => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/vendor/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(formData)
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Vendor profile saved successfully!");
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event("profileUpdated"));
+        }
+      }
+      else toast.error(data.message || "Failed to update profile");
+    } catch (err) {
+      toast.error("An error occurred while saving");
+    } finally {
       setSaving(false);
-      toast.success("Vendor profile saved successfully!");
-    }, 800);
+    }
   };
 
   const handlePasswordSave = async (e) => {
@@ -272,7 +306,7 @@ export default function VendorSettingsAndProfile() {
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row min-h-[650px] overflow-hidden">
         
         {/* Simple Sidebar Menu */}
-        <div className="w-full md:w-64 bg-gray-50 dark:bg-gray-800 border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800 p-4 shrink-0 flex flex-col gap-1">
+        <div id="profile-tabs" className="w-full md:w-64 bg-gray-50 dark:bg-gray-800 border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800 p-4 shrink-0 flex flex-col gap-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -308,12 +342,17 @@ export default function VendorSettingsAndProfile() {
             <div className="max-w-3xl animate-in slide-in-from-right-4 duration-300">
               <div className="flex items-center gap-6 mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
                 <div className="relative group shrink-0">
-                  <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center text-3xl font-bold text-purple-700 border-2 border-white dark:border-gray-900 shadow-sm">
-                    {formData.businessName?.[0] || formData.firstName?.[0] || 'V'}
+                  <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center text-3xl font-bold text-purple-700 border-2 border-white dark:border-gray-900 shadow-sm overflow-hidden">
+                    {formData.profilePicture ? (
+                      <img src={formData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      formData.businessName?.[0] || formData.firstName?.[0] || 'V'
+                    )}
                   </div>
-                  <button className="absolute bottom-0 right-0 p-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 hover:text-purple-600 shadow-sm">
+                  <label className="cursor-pointer absolute bottom-0 right-0 p-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full text-gray-700 dark:text-gray-300 hover:text-purple-600 shadow-sm">
                     <FiCamera size={14} />
-                  </button>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                  </label>
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">{formData.businessName || "Your Store"}</h2>
@@ -323,7 +362,7 @@ export default function VendorSettingsAndProfile() {
 
               <form onSubmit={handleProfileSave} className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-4">Store Details</h3>
+                  <h3 id="profile-store-details" className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-4">Store Details</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>

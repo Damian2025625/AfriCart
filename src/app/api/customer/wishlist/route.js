@@ -22,6 +22,7 @@ export async function GET(request) {
     const wishlistItems = await Wishlist.find({ customerId: decoded.userId })
       .populate({
         path: 'productId',
+        select: 'name price images categoryId vendorId',
         populate: [
           { path: 'categoryId', select: 'name' },
           { path: 'vendorId', select: 'businessName city state logoUrl' }

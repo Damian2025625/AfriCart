@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import axios from "axios";
 
 const SyncContext = createContext();
 
@@ -24,13 +25,12 @@ export const SyncProvider = ({ children }) => {
       const token = localStorage.getItem("authToken");
       if (!token) return;
 
-      const response = await fetch("/api/me/sync", {
+      const response = await axios.get("/api/me/sync", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = await response.json();
 
-      if (data.success) {
-        setCounts(data.counts);
+      if (response.data.success) {
+        setCounts(response.data.counts);
       }
     } catch (error) {
       console.error("Pulse sync failed:", error);
@@ -58,8 +58,14 @@ export const SyncProvider = ({ children }) => {
     };
   }, [fetchSyncData]);
 
+  // Immediately zero the notification badge locally (called when user marks all as read).
+  // The next 30-second server poll will restore the count only if genuinely new items exist.
+  const clearNotifications = useCallback(() => {
+    setCounts((prev) => ({ ...prev, notifications: 0 }));
+  }, []);
+
   return (
-    <SyncContext.Provider value={{ counts, loading, refresh: fetchSyncData }}>
+    <SyncContext.Provider value={{ counts, loading, refresh: fetchSyncData, clearNotifications }}>
       {children}
     </SyncContext.Provider>
   );

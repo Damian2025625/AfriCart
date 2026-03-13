@@ -21,10 +21,10 @@ async function connectDB() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      maxPoolSize: 50,           // Increased pool to handle parallel admin requests
-      serverSelectionTimeoutMS: 300000, 
-      socketTimeoutMS: 300000,
-      connectTimeoutMS: 30000,   // Wait up to 30s to establish connection
+      maxPoolSize: 100,           
+      serverSelectionTimeoutMS: 30000, 
+      socketTimeoutMS: 60000,
+      connectTimeoutMS: 30000,  
     };
 
     console.log('🔄 Connecting to MongoDB...');
