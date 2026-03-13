@@ -127,7 +127,7 @@ export default function CustomerLayout({ children }) {
   const handleHeaderSearch = (e) => {
     e.preventDefault();
     if (headerSearchTerm.trim()) {
-      router.push(`/dashboard/search?search=${encodeURIComponent(headerSearchTerm)}`);
+      router.push(`/dashboard/customer/search?search=${encodeURIComponent(headerSearchTerm)}`);
       setHeaderSearchTerm("");
     }
   };
