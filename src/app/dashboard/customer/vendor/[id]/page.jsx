@@ -372,7 +372,7 @@ export default function VendorProfilePage() {
                    <p className="text-sm text-gray-500 dark:text-gray-400">This vendor hasn't uploaded any products.</p>
                </div>
            ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
                     {products.map((product) => {
                       const mainImage = product.images?.[0];
                       const hasActiveDiscount = (product.discountPercentage || 0) > 0;
