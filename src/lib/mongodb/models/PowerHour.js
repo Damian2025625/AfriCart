@@ -20,6 +20,10 @@ const PowerHourSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    views: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
       enum: ['ACTIVE', 'EXPIRED', 'CANCELLED'],

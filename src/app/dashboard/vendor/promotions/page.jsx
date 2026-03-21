@@ -15,6 +15,7 @@ import {
   FiPlus,
   FiInfo,
   FiEye,
+  FiTrash2,
 } from "react-icons/fi";
 import Link from "next/link";
 import Image from "next/image";
@@ -171,6 +172,34 @@ export default function PromotionsPage() {
     });
     setShowSetup(true);
   };
+  
+  const handleDelete = async (id, type) => {
+    if (!window.confirm("Are you sure you want to delete this promotion? This action cannot be undone.")) return;
+    
+    const loadingToast = toast.loading("Deleting promotion...");
+    try {
+      const token = localStorage.getItem("authToken");
+      const endpoint = type === 'SLASH' 
+        ? `/api/vendor/promotions/slash?id=${id}` 
+        : `/api/vendor/promotions/power-hour?id=${id}`;
+
+      const res = await fetch(endpoint, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Promotion deleted!", { id: loadingToast });
+        fetchSessions();
+        fetchPowerHours();
+      } else {
+        toast.error(data.message || "Delete failed", { id: loadingToast });
+      }
+    } catch (err) {
+      toast.error("An error occurred", { id: loadingToast });
+    }
+  };
 
   const handleSubmitSetup = async (e) => {
     e.preventDefault();
@@ -247,14 +276,8 @@ export default function PromotionsPage() {
     sum + (s.type === 'SLASH' ? (s.currentCount || 0) : (s.acceptedCount || 0)), 0
   );
 
-  // 4. Unique Visibility (Sum of views for UNIQUE products involved in promotions)
-  const uniqueProductViewsMap = new Map();
-  allCampaigns.forEach(s => {
-    if (s.productId?._id) {
-      uniqueProductViewsMap.set(s.productId._id.toString(), s.productId.views || 0);
-    }
-  });
-  const totalPromoViews = Array.from(uniqueProductViewsMap.values()).reduce((sum, v) => sum + v, 0);
+  // 4. Campaign impressions (Sum of views FOR the specific campaign sessions)
+  const totalPromoViews = allCampaigns.reduce((sum, s) => sum + (s.views || 0), 0);
 
   return (
     <div className="min-h-screen">
@@ -286,7 +309,7 @@ export default function PromotionsPage() {
           <p className="text-2xl font-bold text-orange-700">{newJoins}</p>
         </div>
         <div className="bg-green-50 rounded-xl p-6 shadow-sm border border-green-100">
-          <p className="text-xs text-green-700 mb-1">Promotion Visibility</p>
+          <p className="text-xs text-green-700 mb-1">Campaign Impressions</p>
           <p className="text-2xl font-bold text-green-700">{totalPromoViews}</p>
         </div>
       </div>
@@ -456,7 +479,7 @@ export default function PromotionsPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-1 text-gray-600">
                           <FiEye className="text-gray-400" />
-                          <span className="text-xs font-bold">{s.productId?.views || 0}</span>
+                          <span className="text-xs font-bold" title="Total times this promotion was seen by customers">{s.views || 0}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -471,12 +494,21 @@ export default function PromotionsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <button 
-                          onClick={() => router.push(`/dashboard/customer/products/${s.productId?._id}`)}
-                          className="text-[10px] font-bold text-gray-400 hover:text-gray-900"
-                        >
-                          View Link
-                        </button>
+                        <div className="flex items-center gap-4">
+                          <button 
+                            onClick={() => router.push(`/dashboard/customer/products/${s.productId?._id}`)}
+                            className="text-[10px] font-bold text-gray-400 hover:text-gray-900 transition-colors"
+                          >
+                            View Link
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(s._id, s.type)}
+                            className="text-[10px] font-bold text-red-400 hover:text-red-600 transition-colors flex items-center gap-1"
+                            title="Delete Promotion"
+                          >
+                            <FiTrash2 size={12} /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

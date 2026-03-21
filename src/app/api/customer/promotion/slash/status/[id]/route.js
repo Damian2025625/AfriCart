@@ -29,6 +29,10 @@ export async function GET(request, { params }) {
       return NextResponse.json({ success: true, session: null });
     }
 
+    // ✅ Track campaign-specific visibility
+    session.views = (session.views || 0) + 1;
+    await session.save();
+
     return NextResponse.json({
       success: true,
       session: {

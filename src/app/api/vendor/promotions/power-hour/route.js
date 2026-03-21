@@ -95,6 +95,17 @@ export async function GET(request) {
       return NextResponse.json({ success: false, message: 'Vendor profile not found' }, { status: 404 });
     }
 
+    // ✅ AUTO-EXPIRE: Mark LOGICALLY expired Power Hours before returning list
+    const now = new Date();
+    await PowerHour.updateMany(
+      { 
+        vendorId: vendor._id,
+        status: 'ACTIVE',
+        endTime: { $lt: now } 
+      },
+      { $set: { status: 'EXPIRED' } }
+    );
+
     const sessions = await PowerHour.find({ vendorId: vendor._id })
       .populate('productId', 'name price images views')
       .sort({ createdAt: -1 })
@@ -117,6 +128,35 @@ export async function GET(request) {
     });
   } catch (error) {
     console.error('Error fetching power hours:', error);
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// DELETE - Remove a power hour session
+export async function DELETE(request) {
+  try {
+    const user = await verifyToken(request);
+    if (!user || user.role !== 'VENDOR') {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ success: false, message: 'ID required' }, { status: 400 });
+
+    await connectDB();
+    const vendor = await Vendor.findOne({ userId: user.userId });
+    if (!vendor) return NextResponse.json({ success: false, message: 'Vendor profile not found' }, { status: 404 });
+
+    const session = await (await import('@/lib/mongodb/models/PowerHour')).default.findOne({ _id: id, vendorId: vendor._id });
+    if (!session) return NextResponse.json({ success: false, message: 'Campaign not found' }, { status: 404 });
+
+    // Delete session
+    await (await import('@/lib/mongodb/models/PowerHour')).default.deleteOne({ _id: id });
+
+    return NextResponse.json({ success: true, message: 'Promotion deleted successfully' });
+  } catch (error) {
+    console.error('DELETE error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }

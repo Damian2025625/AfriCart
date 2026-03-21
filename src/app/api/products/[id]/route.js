@@ -60,6 +60,11 @@ export async function GET(request, { params }) {
       endTime: { $gt: new Date() }
     });
 
+    if (activePowerHour) {
+      activePowerHour.views = (activePowerHour.views || 0) + 1;
+      await activePowerHour.save();
+    }
+
     // Transform product data
     const transformedProduct = {
       _id: product._id.toString(),

@@ -109,9 +109,35 @@ export async function GET(request) {
     }
 
     const vendor = await Vendor.findOne({ userId: user.userId });
-    console.log('[PromotionsAPI:GET] Vendor found:', vendor ? vendor._id : 'NOT FOUND');
     if (!vendor) {
       return NextResponse.json({ success: false, message: 'Vendor profile not found' }, { status: 404 });
+    }
+
+    // ✅ AUTO-EXPIRE: Use high-performance updateMany for bulk cleanup
+    const now = new Date();
+    
+    // 1. Mark logically expired Slashing sessions (Still PENDING but past endTime)
+    const expiredSlashing = await CommunitySlash.find({
+      vendorId: vendor._id,
+      status: 'PENDING',
+      endTime: { $lt: now }
+    }).select('_id productId');
+
+    if (expiredSlashing.length > 0) {
+      const expiredIds = expiredSlashing.map(s => s._id);
+      const productIds = expiredSlashing.map(s => s.productId);
+
+      // Update session status
+      await CommunitySlash.updateMany(
+        { _id: { $in: expiredIds } },
+        { $set: { status: 'EXPIRED' } }
+      );
+
+      // Clear product associations so badging disappears
+      await Product.updateMany(
+        { _id: { $in: productIds }, activeSlashId: { $in: expiredIds } },
+        { $unset: { activeSlashId: "" } }
+      );
     }
 
     const sessions = await CommunitySlash.find({ vendorId: vendor._id })
@@ -130,6 +156,44 @@ export async function GET(request) {
     });
   } catch (error) {
     console.error('Error fetching slash sessions:', error);
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// DELETE - Remove/Cancel a slashing session
+export async function DELETE(request) {
+  try {
+    const user = await verifyToken(request);
+    if (!user || user.role !== 'VENDOR') {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ success: false, message: 'ID required' }, { status: 400 });
+
+    await connectDB();
+    const vendor = await Vendor.findOne({ userId: user.userId });
+    if (!vendor) return NextResponse.json({ success: false, message: 'Vendor profile not found' }, { status: 404 });
+
+    const session = await CommunitySlash.findOne({ _id: id, vendorId: vendor._id });
+    if (!session) return NextResponse.json({ success: false, message: 'Campaign not found' }, { status: 404 });
+
+    // 1. Clear association from Product
+    const Product = (await import('@/lib/mongodb/models/Product')).default;
+    await Product.updateOne(
+      { _id: session.productId, activeSlashId: session._id },
+      { $unset: { activeSlashId: "" } }
+    );
+
+    // 2. Delete session
+    await (await import('@/lib/mongodb/models/CommunitySlash')).default.deleteOne({ _id: id });
+    const { clearCache } = await import("@/lib/cache");
+    clearCache();
+
+    return NextResponse.json({ success: true, message: 'Promotion deleted successfully' });
+  } catch (error) {
+    console.error('DELETE error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }
