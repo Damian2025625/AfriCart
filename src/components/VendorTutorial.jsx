@@ -8,7 +8,7 @@ import {
 } from "react-icons/fi";
 import { usePathname, useRouter } from "next/navigation";
 
-const TUTORIAL_KEY = "vendorTutorialDone_v10";
+const TUTORIAL_KEY = "vendorTutorialDone_v11";
 
 const steps = [
   {
@@ -107,6 +107,34 @@ const steps = [
     description: "Click the 'View' button or the Order ID on any row to open the Details Page. There you can track full shipping history and customer notes.",
     position: "top",
     page: "/dashboard/vendor/orders"
+  },
+  {
+    target: "#nav-promotions",
+    title: "Marketing Hub",
+    description: "Want to sell faster? Our viral marketing tools help you reach more customers. Let's look inside.",
+    position: "right",
+    page: "/dashboard/vendor/promotions"
+  },
+  {
+    target: "#promotions-stats",
+    title: "Campaign Vitals",
+    description: "Track how many people are seeing your promos and how many are joining your group-buy slashed deals.",
+    position: "bottom",
+    page: "/dashboard/vendor/promotions"
+  },
+  {
+    target: "#promotions-grid",
+    title: "Slashing & Power Hours",
+    description: "Launch a 'Community Slashing' to encourage viral sharing, or a 'Power Hour' to auto-accept negotiations within your range.",
+    position: "top",
+    page: "/dashboard/vendor/promotions"
+  },
+  {
+    target: "#promotions-monitoring",
+    title: "Real-time Monitoring",
+    description: "Watch your active campaigns as they happen. See exactly how many more people need to join to trigger a price slash!",
+    position: "top",
+    page: "/dashboard/vendor/promotions"
   },
   {
     target: "#nav-analytics",
@@ -210,11 +238,17 @@ export default function VendorTutorial() {
   const router = useRouter();
 
   useEffect(() => {
+    // If we're on a logout page or not logged in, don't show
+    if (pathname === "/login" || pathname === "/register") return;
+
     const done = localStorage.getItem(TUTORIAL_KEY);
     if (!done) {
-      setTimeout(() => setVisible(true), 1500); 
+      const timer = setTimeout(() => {
+        setVisible(true);
+      }, 1000); 
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (visible) {

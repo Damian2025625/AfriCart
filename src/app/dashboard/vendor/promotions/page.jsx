@@ -272,7 +272,7 @@ export default function PromotionsPage() {
       </div>
 
       {/* Stats - Consistent with Dashboard Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div id="promotions-stats" className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <p className="text-xs text-gray-500 mb-1">Active Campaigns</p>
           <p className="text-2xl font-bold text-gray-900">{activeCampaigns}</p>
@@ -292,7 +292,7 @@ export default function PromotionsPage() {
       </div>
 
       {/* Promotions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      <div id="promotions-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
         {promotions.map((promo) => (
           <div 
             key={promo.id}
@@ -356,7 +356,7 @@ export default function PromotionsPage() {
       </div>
 
       {/* Campaign Monitoring Section */}
-      <div className="mt-12 bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+      <div id="promotions-monitoring" className="mt-12 bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
         <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
           <div>
             <h3 className="text-lg font-bold text-gray-900">Campaign Monitoring</h3>
