@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react'
 import { FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
-import { toast } from 'react-toastify'
+import toast from 'react-hot-toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 

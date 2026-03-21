@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { FiMail, FiArrowLeft } from 'react-icons/fi'
-import { toast } from 'react-toastify'
+import toast from 'react-hot-toast'
 import Link from 'next/link'
 
 export default function ForgotPasswordPage() {
