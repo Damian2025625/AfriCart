@@ -52,14 +52,17 @@ export async function GET(request) {
       // 2. Conversations for unread messages
       Conversation.find({ vendorId }).select("_id").lean(),
 
-      // 3. Recent orders incoming to the vendor (last 7 days)
+      // 3. Orders: ALL pending (action required) OR any update in last 7 days
       Order.find({
         vendorId,
         isMasterOrder: false,
-        updatedAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+        $or: [
+          { orderStatus: "PENDING" },
+          { updatedAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } }
+        ]
       })
         .sort({ updatedAt: -1 })
-        .limit(15)
+        .limit(20)
         .lean(),
 
       // 4. Community Slashing activities (last 3 days)

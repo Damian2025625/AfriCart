@@ -66,30 +66,47 @@ export async function GET(request) {
       const vendor = await Vendor.findOne({ userId }).lean();
       if (!vendor) return NextResponse.json(data);
 
-      const [pendingOffers, unreadMessages, pendingOrders] = await Promise.all([
+      const [pendingOffersCount, unreadMessagesData, pendingOrdersCount] = await Promise.all([
         // 1. Pending Offers (Waiting for vendor to accept/counter)
         PriceOffer.countDocuments({
           vendorId: vendor._id,
           status: "PENDING"
         }),
 
-        // 2. Unread Messages Count
-        Conversation.aggregate([
-          { $match: { vendorId: vendor._id } },
-          { $group: { _id: null, total: { $sum: "$unreadCount" } } }
+        // 2. Unread Messages Count - MATCHING Notifications logic (Sender NOT me + isRead false)
+        Message.aggregate([
+          {
+            $match: {
+              senderId: { $ne: userId },
+              isRead: false
+            }
+          },
+          {
+            $lookup: {
+              from: "conversations",
+              localField: "conversationId",
+              foreignField: "_id",
+              as: "conv"
+            }
+          },
+          { $unwind: "$conv" },
+          { $match: { "conv.vendorId": vendor._id } },
+          { $group: { _id: null, count: { $sum: 1 } } }
         ]),
 
-        // 3. Pending Orders Count
+        // 3. Orders: ALL pending (matching Notifications logic)
         Order.countDocuments({
           vendorId: vendor._id,
+          isMasterOrder: false,
           orderStatus: "PENDING"
         })
       ]);
 
-      data.counts.offers = pendingOffers;
-      data.counts.messages = unreadMessages[0]?.total || 0;
-      data.counts.notifications = pendingOffers + unreadMessages[0]?.total + pendingOrders;
-      data.counts.pendingOrders = pendingOrders;
+      const msgCount = unreadMessagesData[0]?.count || 0;
+      data.counts.offers = pendingOffersCount;
+      data.counts.messages = msgCount;
+      data.counts.notifications = pendingOffersCount + msgCount + pendingOrdersCount;
+      data.counts.pendingOrders = pendingOrdersCount;
     }
 
     return NextResponse.json(data);
