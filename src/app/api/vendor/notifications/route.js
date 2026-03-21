@@ -40,7 +40,7 @@ export async function GET(request) {
     const notifications = [];
 
     // Parallelize all fetches
-    const [pendingOffers, conversations, recentOrders] = await Promise.all([
+    const [pendingOffers, conversations, recentOrders, slashActivities] = await Promise.all([
       // 1. Pending price offers waiting for vendor response
       PriceOffer.find({
         vendorId,
@@ -61,6 +61,20 @@ export async function GET(request) {
         .sort({ updatedAt: -1 })
         .limit(15)
         .lean(),
+
+      // 4. Community Slashing activities (last 3 days)
+      (async () => {
+        try {
+          const CommunitySlash = (await import('@/lib/mongodb/models/CommunitySlash')).default;
+          return await CommunitySlash.find({
+            vendorId,
+            updatedAt: { $gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) }
+          }).populate("productId", "name").lean();
+        } catch (e) {
+          console.error("Slash fetch error:", e);
+          return [];
+        }
+      })()
     ]);
 
     // Process pending offers
@@ -107,6 +121,29 @@ export async function GET(request) {
         });
       });
     }
+
+    // Process slash activities
+    (slashActivities || []).forEach(slash => {
+      if (slash.status === "SUCCESS") {
+        notifications.push({
+          id: `slash_success_${slash._id}`,
+          type: "OFFER",
+          title: "Group Buy Goal Reached! 🎉",
+          message: `The target for "${slash.productId?.name}" was reached. Customers can now buy at the slashed price.`,
+          link: "/dashboard/vendor/promotions",
+          date: slash.updatedAt,
+        });
+      } else if (slash.currentCount > 0) {
+        notifications.push({
+          id: `slash_progress_${slash._id}_${slash.currentCount}`,
+          type: "OFFER",
+          title: "Promotion Progress",
+          message: `${slash.currentCount} customers have joined the group buy for "${slash.productId?.name}".`,
+          link: "/dashboard/vendor/promotions",
+          date: slash.updatedAt,
+        });
+      }
+    });
 
     // Process recent orders
     recentOrders.forEach((order) => {

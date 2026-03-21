@@ -55,8 +55,20 @@ export async function GET(request) {
         customerId: userId,
         isMasterOrder: false,
         updatedAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-      }).sort({ updatedAt: -1 }).limit(10).lean()
+      }).sort({ updatedAt: -1 }).limit(10).lean(),
+
+      // 4. Community Slash success for participants
+      (async () => {
+        const CommunitySlash = (await import('@/lib/mongodb/models/CommunitySlash')).default;
+        return CommunitySlash.find({
+          "participants.userId": userId,
+          status: "SUCCESS",
+          updatedAt: { $gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) }
+        }).populate("productId", "name").lean();
+      })()
     ]);
+
+    const slashActivities = results[3] || [];
 
     offers.forEach(offer => {
       let message = "";
@@ -120,6 +132,18 @@ export async function GET(request) {
         message: `Your order ${order.orderNumber} is now ${order.orderStatus.toLowerCase()}`,
         link: `/dashboard/customer/orders`,
         date: order.updatedAt,
+      });
+    });
+
+    // 4. Process Slash successes
+    slashActivities.forEach(slash => {
+      notifications.push({
+        id: `slash_success_${slash._id}`,
+        type: "OFFER",
+        title: "Group Buy Success! 🔥",
+        message: `The community target for "${slash.productId?.name}" was reached! Buy now at the slashed price.`,
+        link: `/dashboard/customer/products/${slash.productId?._id}`,
+        date: slash.updatedAt,
       });
     });
 
