@@ -59,6 +59,11 @@ const ProductSchema = new mongoose.Schema(
       max: 100,
       default: 0,
     },
+    lowStockThreshold: {
+      type: Number,
+      min: 0,
+      default: 5,
+    },
     discountStartDate: {
       type: Date,
     },

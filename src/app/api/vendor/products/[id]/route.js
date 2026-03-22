@@ -232,6 +232,7 @@ export async function PUT(request, { params }) {
         subcategoryId: body.subcategoryId || null,
         price: parseFloat(body.price),
         quantity: parseInt(body.quantity) || 0,
+        lowStockThreshold: body.lowStockThreshold !== undefined ? parseInt(body.lowStockThreshold) : 5,
         sku: body.sku?.trim() || null,
         images: body.images || [],
         features: body.features || [],

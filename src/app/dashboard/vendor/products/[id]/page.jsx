@@ -148,12 +148,12 @@ export default function ProductDetailsPage({ params }) {
     });
   };
 
-  const getStockStatus = (quantity, isActive) => {
-    if (!isActive)
+  const getStockStatus = (product) => {
+    if (!product.isActive)
       return { label: "Inactive", color: "bg-gray-100 text-gray-800" };
-    if (quantity === 0)
+    if (product.quantity === 0)
       return { label: "Out of Stock", color: "bg-red-100 text-red-800" };
-    if (quantity <= 10)
+    if (product.quantity <= (product.lowStockThreshold !== undefined ? product.lowStockThreshold : 5))
       return { label: "Low Stock", color: "bg-yellow-100 text-yellow-800" };
     return { label: "In Stock", color: "bg-green-100 text-green-800" };
   };
@@ -196,7 +196,7 @@ export default function ProductDetailsPage({ params }) {
     );
   }
 
-  const stockStatus = getStockStatus(product.quantity, product.isActive);
+  const stockStatus = getStockStatus(product);
   const images = product.images || [];
 
   return (

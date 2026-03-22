@@ -60,6 +60,7 @@ export default function ProductsPage() {
     subcategoryId: "",
     price: "",
     quantity: "",
+    lowStockThreshold: 5,
     weight: "1",
     sku: "",
     discountPercentage: 0,
@@ -174,7 +175,7 @@ export default function ProductsPage() {
     const total = productsData.length;
     const active = productsData.filter((p) => p.isActive).length;
     const lowStock = productsData.filter(
-      (p) => p.quantity > 0 && p.quantity <= 10,
+      (p) => p.quantity > 0 && p.quantity <= (p.lowStockThreshold !== undefined ? p.lowStockThreshold : 5),
     ).length;
     const outOfStock = productsData.filter((p) => p.quantity === 0).length;
 
@@ -205,7 +206,7 @@ export default function ProductsPage() {
     } else if (selectedStatus === "inactive") {
       filtered = filtered.filter((p) => p.isActive === false);
     } else if (selectedStatus === "low_stock") {
-      filtered = filtered.filter((p) => p.quantity > 0 && p.quantity <= 10);
+      filtered = filtered.filter((p) => p.quantity > 0 && p.quantity <= (p.lowStockThreshold !== undefined ? p.lowStockThreshold : 5));
     } else if (selectedStatus === "out_of_stock") {
       filtered = filtered.filter((p) => p.quantity === 0);
     } else if (selectedStatus === "promoted") {
@@ -215,12 +216,12 @@ export default function ProductsPage() {
     setFilteredProducts(filtered);
   };
 
-  const getStockStatus = (quantity, isActive) => {
-    if (!isActive)
+  const getStockStatus = (product) => {
+    if (!product.isActive)
       return { label: "Inactive", color: "bg-gray-100 text-gray-800" };
-    if (quantity === 0)
+    if (product.quantity === 0)
       return { label: "Out of Stock", color: "bg-red-100 text-red-800" };
-    if (quantity <= 10)
+    if (product.quantity <= (product.lowStockThreshold !== undefined ? product.lowStockThreshold : 5))
       return { label: "Low Stock", color: "bg-yellow-100 text-yellow-800" };
     return { label: "Active", color: "bg-green-100 text-green-800" };
   };
@@ -359,6 +360,7 @@ export default function ProductsPage() {
         subcategoryId: formData.subcategoryId || null,
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
+        lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
         weight: parseFloat(formData.weight) || 1,
         sku: formData.sku.trim() || null,
         discountPercentage: parseFloat(formData.discountPercentage) || 0,
@@ -406,6 +408,7 @@ export default function ProductsPage() {
       subcategoryId: "",
       price: "",
       quantity: "",
+      lowStockThreshold: 5,
       weight: "1",
       sku: "",
       discountPercentage: 0,
@@ -682,10 +685,7 @@ export default function ProductsPage() {
       ) : (
         <div id="products-list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => {
-            const stockStatus = getStockStatus(
-              product.quantity,
-              product.isActive,
-            );
+            const stockStatus = getStockStatus(product);
             const mainImage =
               product.images && product.images.length > 0
                 ? product.images[0]
@@ -1092,6 +1092,22 @@ export default function ProductsPage() {
                       placeholder="0"
                       className="w-full text-gray-900 px-4 py-3 border outline-none text-sm h-11 border-gray-300 rounded-lg focus:ring-0.5 focus:ring-orange-500 focus:border-orange-500 transition-colors placeholder-gray-400"
                       required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Low Stock Alert at
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.lowStockThreshold}
+                      onChange={(e) =>
+                        handleInputChange("lowStockThreshold", e.target.value)
+                      }
+                      placeholder="5"
+                      className="w-full text-gray-900 px-4 py-3 border outline-none text-sm h-11 border-gray-300 rounded-lg focus:ring-0.5 focus:ring-orange-500 focus:border-orange-500 transition-colors placeholder-gray-400"
                     />
                   </div>
 

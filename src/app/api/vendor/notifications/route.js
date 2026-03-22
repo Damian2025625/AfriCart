@@ -40,7 +40,7 @@ export async function GET(request) {
     const notifications = [];
 
     // Parallelize all fetches
-    const [pendingOffers, conversations, recentOrders, slashActivities] = await Promise.all([
+    const [pendingOffers, conversations, recentOrders, slashActivities, lowStockProducts] = await Promise.all([
       // 1. Pending price offers waiting for vendor response
       PriceOffer.find({
         vendorId,
@@ -75,6 +75,21 @@ export async function GET(request) {
           }).populate("productId", "name").lean();
         } catch (e) {
           console.error("Slash fetch error:", e);
+          return [];
+        }
+      })(),
+
+      // 5. Low stock products
+      (async () => {
+        try {
+          const Product = (await import('@/lib/mongodb/models/Product')).default;
+          return await Product.find({
+            vendorId,
+            isActive: true,
+            $expr: { $lte: ["$quantity", { $ifNull: ["$lowStockThreshold", 5] }] }
+          }).select("name quantity lowStockThreshold").lean();
+        } catch (e) {
+          console.error("Low stock fetch error:", e);
           return [];
         }
       })()
@@ -160,6 +175,22 @@ export async function GET(request) {
           : `Order #${order.orderNumber} status changed to ${order.orderStatus.toLowerCase()}.`,
         link: "/dashboard/vendor/orders",
         date: order.updatedAt,
+      });
+    });
+
+    // Process low stock products
+    (lowStockProducts || []).forEach((product) => {
+      // Only show alert if it's strictly > 0 (0 is usually Out of Stock, handled differently, but we can include <= threshold regardless. 
+      // If the frontend has Out of Stock separate, this might overlap, but it's okay for an alert.)
+      notifications.push({
+        id: `low_stock_${product._id}_${product.quantity}`,
+        type: "INVENTORY",
+        title: product.quantity === 0 ? "Out of Stock Alert" : "Low Stock Alert",
+        message: product.quantity === 0 
+          ? `Your product "${product.name}" is out of stock!` 
+          : `Your product "${product.name}" is running low on stock (${product.quantity} left).`,
+        link: `/dashboard/vendor/products/${product._id}/edit`,
+        date: new Date(), // Always recent so they see it
       });
     });
 

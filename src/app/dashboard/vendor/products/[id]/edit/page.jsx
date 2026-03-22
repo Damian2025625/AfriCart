@@ -148,6 +148,7 @@ export default function EditProductPage({ params }) {
         subcategoryId: product.subcategoryId || "",
         price: product.price.toString(),
         quantity: product.quantity.toString(),
+        lowStockThreshold: product.lowStockThreshold !== undefined ? product.lowStockThreshold.toString() : "5",
         sku: product.sku || "",
         discountPercentage: product.discountPercentage || 0,
         discountStartDate: formatDateForInput(product.discountStartDate),
@@ -277,6 +278,7 @@ export default function EditProductPage({ params }) {
         subcategoryId: formData.subcategoryId || null,
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
+        lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
         sku: formData.sku.trim() || null,
         discountPercentage: parseFloat(formData.discountPercentage) || 0,
         discountStartDate: formData.discountStartDate || null,
@@ -580,6 +582,20 @@ export default function EditProductPage({ params }) {
                 placeholder="0"
                 className="w-full text-gray-900 px-4 py-3 border outline-none text-sm h-11 border-gray-300 rounded-lg focus:ring-0.5 focus:ring-orange-500 focus:border-orange-500 transition-colors placeholder-gray-400"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Low Stock Alert at
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.lowStockThreshold}
+                onChange={(e) => handleInputChange("lowStockThreshold", e.target.value)}
+                placeholder="5"
+                className="w-full text-gray-900 px-4 py-3 border outline-none text-sm h-11 border-gray-300 rounded-lg focus:ring-0.5 focus:ring-orange-500 focus:border-orange-500 transition-colors placeholder-gray-400"
               />
             </div>
 

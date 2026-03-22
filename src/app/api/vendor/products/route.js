@@ -112,6 +112,7 @@ export async function POST(request) {
       subcategoryId: body.subcategoryId || null,
       price: parseFloat(body.price),
       quantity: parseInt(body.quantity) || 0,
+      lowStockThreshold: body.lowStockThreshold !== undefined ? parseInt(body.lowStockThreshold) : 5,
       weight: parseFloat(body.weight) || 1,
       sku,
       images: imageUrls, // ✨ Cloudinary URLs instead of blob URLs

@@ -445,6 +445,11 @@ export default function StorefrontPage() {
       <main className={`flex-1 transition-all duration-300 overflow-x-hidden pt-16 lg:pt-14 ${collapsed ? "lg:ml-[60px]" : "lg:ml-58"}`}>
         <div className="p-4">
 
+          {/* ── Academic Project Banner ── */}
+          <div className="w-full bg-gradient-to-r from-orange-500 to-green-600 text-white text-center py-3 px-4 rounded-xl md:rounded-2xl mb-6 font-extrabold text-[10px] md:text-sm shadow-md tracking-wider border border-white/20">
+            PROJECT: DESIGN AND IMPLEMENTATION OF A MULTI-VENDOR E-COMMERCE PLATFORM FOR LOCAL SMEs
+          </div>
+
           {/* ── Hero Carousel ── */}
           <div className="relative h-[340px] md:h-[420px] w-full rounded-2xl md:rounded-3xl overflow-hidden mb-10 group">
             {heroSlides.map((deal, i) => (
