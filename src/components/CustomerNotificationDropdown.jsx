@@ -103,9 +103,9 @@ export default function CustomerNotificationDropdown() {
       {/* Target Bell Icon Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-xl bg-gray-300 hover:bg-orange-600 group transition-colors duration-200 relative flex items-center justify-center outline-none"
+        className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-orange-500 group transition-all duration-200 relative flex items-center justify-center outline-none"
       >
-        <FiBell className="text-base text-gray-700 cursor-pointer group-hover:text-white" />
+        <FiBell className="text-lg text-gray-900 dark:text-gray-200 cursor-pointer group-hover:text-white" />
         
         {/* Unread Badge Count */}
         {counts.notifications > 0 && (

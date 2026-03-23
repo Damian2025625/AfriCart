@@ -20,6 +20,8 @@ import {
   FiSearch,
   FiMessageSquare,
   FiTag,
+  FiFilter,
+  FiStar,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import {
@@ -38,6 +40,30 @@ export default function CustomerLayout({ children }) {
   const [showHeaderSearch, setShowHeaderSearch] = useState(false);
   const [headerSearchTerm, setHeaderSearchTerm] = useState("");
   const { counts } = useSync();
+
+  // Filter state (lives here so it persists across sidebar interactions)
+  const [filterMinPrice, setFilterMinPrice] = useState("");
+  const [filterMaxPrice, setFilterMaxPrice] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
+  const [filterMinRating, setFilterMinRating] = useState(0);
+  const [filtersApplied, setFiltersApplied] = useState(false);
+
+  const handleSidebarApplyFilters = () => {
+    setFiltersApplied(true);
+    // Dispatch a custom event the page can listen to
+    window.dispatchEvent(new CustomEvent("applyFilters", {
+      detail: { minPrice: filterMinPrice, maxPrice: filterMaxPrice, location: filterLocation, minRating: filterMinRating }
+    }));
+  };
+
+  const handleSidebarClearFilters = () => {
+    setFilterMinPrice("");
+    setFilterMaxPrice("");
+    setFilterLocation("");
+    setFilterMinRating(0);
+    setFiltersApplied(false);
+    window.dispatchEvent(new CustomEvent("clearFilters"));
+  };
 
   const hideSearchOn = [
     "/dashboard/customer/cart",
@@ -121,7 +147,21 @@ export default function CustomerLayout({ children }) {
       setShowHeaderSearch(window.scrollY > 500);
     };
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    const onClearFilters = () => {
+      setFilterMinPrice("");
+      setFilterMaxPrice("");
+      setFilterLocation("");
+      setFilterMinRating(0);
+      setFiltersApplied(false);
+    };
+
+    window.addEventListener("clearFilters", onClearFilters);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("clearFilters", onClearFilters);
+    };
   }, []);
 
   const handleHeaderSearch = (e) => {
@@ -159,20 +199,25 @@ export default function CustomerLayout({ children }) {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-800 w-full flex">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b flex items-center justify-between px-4 z-50">
-        <button
-          onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-          className="text-2xl text-gray-900 dark:text-white"
-        >
-          {mobileSidebarOpen ? <FiX /> : <FiMenu />}
-        </button>
-
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm overflow-hidden">
-            {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
+          <button
+            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+            className="text-2xl text-gray-900 dark:text-white p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            {mobileSidebarOpen ? <FiX /> : <FiMenu />}
+          </button>
+
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-gradient-to-br from-green-600 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm overflow-hidden border-2 border-white dark:border-gray-700">
+              {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-gray-900 dark:text-white text-[13px] leading-tight">
+                {user?.firstName || "Customer"}
+              </span>
+              <span className="text-[10px] text-gray-500 font-medium leading-tight">Dashboard</span>
+            </div>
           </div>
-          <span className="font-bold text-gray-900 dark:text-white text-sm">
-            {user?.firstName || "Customer"}
-          </span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -181,9 +226,9 @@ export default function CustomerLayout({ children }) {
             <CustomerNotificationDropdown />
               <Link
                 href="/dashboard/customer/cart"
-                className="relative p-2 rounded-xl bg-gray-300 hover:bg-orange-600 group transition-colors duration-200"
+                className="relative p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-orange-500 group transition-all duration-200"
               >
-                <RiShoppingCart2Line className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
+                <RiShoppingCart2Line className="text-lg text-gray-900 dark:text-gray-200 cursor-pointer group-hover:text-white" />
                 {counts.cart > 0 && (
                   <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
                     {counts.cart > 99 ? "99+" : counts.cart}
@@ -245,12 +290,12 @@ export default function CustomerLayout({ children }) {
         <div className="h-full flex items-center justify-between px-4 gap-4">
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="outline-none focus:outline-none cursor-pointer p-2 rounded-xl bg-gray-300 hover:bg-orange-600 group transition-colors duration-200 shrink-0"
+            className="outline-none focus:outline-none cursor-pointer p-2 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-orange-500 group transition-all duration-200 shrink-0"
           >
             {sidebarCollapsed ? (
-              <TbLayoutSidebarLeftCollapse className="text-gray-700 dark:text-gray-300 text-xl group-hover:text-white" />
+              <TbLayoutSidebarLeftCollapse className="text-gray-900 dark:text-gray-200 text-xl group-hover:text-white" />
             ) : (
-              <TbLayoutSidebarLeftExpand className="text-gray-700 dark:text-gray-300 text-xl group-hover:text-white" />
+              <TbLayoutSidebarLeftExpand className="text-gray-900 dark:text-gray-200 text-xl group-hover:text-white" />
             )}
           </button>
 
@@ -290,9 +335,9 @@ export default function CustomerLayout({ children }) {
               <CustomerNotificationDropdown />
               <Link
                 href="/dashboard/customer/cart"
-                className="relative p-2 rounded-xl bg-gray-300 hover:bg-orange-600 group transition-colors duration-200"
+                className="relative p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-orange-500 group transition-all duration-200"
               >
-                <RiShoppingCart2Line className="text-base text-gray-700 dark:text-gray-300 cursor-pointer group-hover:text-white" />
+                <RiShoppingCart2Line className="text-lg text-gray-900 dark:text-gray-200 cursor-pointer group-hover:text-white" />
                 {counts.cart > 0 && (
                   <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
                     {counts.cart > 99 ? "99+" : counts.cart}
@@ -326,7 +371,7 @@ export default function CustomerLayout({ children }) {
       {/* Sidebar */}
       <div
         className={`
-          fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 transition-all duration-300 flex flex-col justify-between z-40 overflow-hidden
+          fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 transition-all duration-300 flex flex-col justify-between z-40 overflow-y-auto scrollbar-thin
           ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0
           ${sidebarCollapsed ? "lg:w-15" : "lg:w-58"}
@@ -358,7 +403,7 @@ export default function CustomerLayout({ children }) {
                   onClick={() => setMobileSidebarOpen(false)}
                   className={`
                     flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
-                    ${isActive ? "bg-green-100 text-green-600" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100"}
+                    ${isActive ? "bg-green-100 text-green-700" : "text-slate-900 dark:text-gray-200 hover:bg-gray-100"}
                     ${sidebarCollapsed ? "lg:justify-center" : ""}
                   `}
                 >
@@ -372,6 +417,69 @@ export default function CustomerLayout({ children }) {
               );
             })}
           </nav>
+
+          {/* Filter Panel – only visible on home page, full sidebar */}
+          {pathname === "/dashboard/customer" && !sidebarCollapsed && (
+            <div className="mt-6 px-3">
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-5">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <FiFilter className="text-xs" /> Filters
+                  </span>
+                  {filtersApplied && (
+                    <button onClick={handleSidebarClearFilters} className="text-[10px] text-orange-500 hover:underline">Clear</button>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Price</label>
+                    <div className="flex gap-2 mt-1.5">
+                      <input type="number" placeholder="Min" value={filterMinPrice} onChange={e => setFilterMinPrice(e.target.value)}
+                        className="w-full px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-[10px] outline-none focus:ring-1 focus:ring-orange-500 dark:text-white" />
+                      <input type="number" placeholder="Max" value={filterMaxPrice} onChange={e => setFilterMaxPrice(e.target.value)}
+                        className="w-full px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-[10px] outline-none focus:ring-1 focus:ring-orange-500 dark:text-white" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Location</label>
+                    <input type="text" placeholder="City or State" value={filterLocation} onChange={e => setFilterLocation(e.target.value)}
+                      className="mt-1.5 w-full px-3 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-[10px] outline-none focus:ring-1 focus:ring-orange-500 dark:text-white" />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Min Rating</label>
+                    <div className="flex items-center gap-0.5 mt-1.5">
+                      {[1, 2, 3, 4, 5].map(s => (
+                        <button key={s} onClick={() => setFilterMinRating(s === filterMinRating ? 0 : s)} className="p-0.5">
+                          <FiStar className={`w-3.5 h-3.5 ${s <= filterMinRating ? "text-yellow-400 fill-current" : "text-gray-300 dark:text-gray-600"}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button onClick={handleSidebarApplyFilters}
+                    className="w-full py-2 bg-orange-500 text-white rounded-lg text-[10px] font-bold hover:bg-orange-600 transition-all active:scale-95">
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Collapsed filter icon hint */}
+          {pathname === "/dashboard/customer" && sidebarCollapsed && (
+            <div className="px-2 mt-4">
+              <button
+                onClick={() => setSidebarCollapsed(false)}
+                title="Expand to use filters"
+                className="w-full flex justify-center p-2.5 rounded-xl text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-gray-800 transition-all"
+              >
+                <FiFilter className="text-base" />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="p-3">

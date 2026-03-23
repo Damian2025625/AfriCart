@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   FiSearch,
@@ -12,8 +12,6 @@ import {
   FiPackage,
   FiArrowRight,
   FiEye,
-  FiZap,
-  FiFilter,
   FiX,
 } from "react-icons/fi";
 import { LuBookCopy, LuCoffee, LuSmartphone } from "react-icons/lu";
@@ -39,11 +37,7 @@ export default function CustomerPage() {
   const hasInitialized = React.useRef(false);
 
   // ── Search & Filter State ──
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [location, setLocation] = useState("");
-  const [minRating, setMinRating] = useState(0);
-  const [showFilters, setShowFilters] = useState(false);
+  const searchTermRef = useRef("");
   const [appliedFilters, setAppliedFilters] = useState({
     minPrice: "",
     maxPrice: "",
@@ -111,6 +105,30 @@ export default function CustomerPage() {
     return () => clearInterval(interval);
   }, [featuredDeals.length]);
 
+  // ── Listen to sidebar filter events ──
+  useEffect(() => {
+    const handleApply = (e) => {
+      const { minPrice, maxPrice, location, minRating } = e.detail;
+      const filters = { minPrice, maxPrice, location, minRating, active: true };
+      setAppliedFilters(filters);
+      fetchFilteredProducts({ minPrice, maxPrice, location, minRating });
+    };
+
+    const handleClear = () => {
+      setAppliedFilters({ minPrice: "", maxPrice: "", location: "", minRating: 0, active: false });
+      setIsFiltering(false);
+      setFilteredProducts([]);
+      fetchData();
+    };
+
+    window.addEventListener("applyFilters", handleApply);
+    window.addEventListener("clearFilters", handleClear);
+    return () => {
+      window.removeEventListener("applyFilters", handleApply);
+      window.removeEventListener("clearFilters", handleClear);
+    };
+  }, []);
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -155,8 +173,10 @@ export default function CustomerPage() {
     setIsFiltering(true);
     try {
       const { minPrice, maxPrice, location } = filters;
+      // Use ref so the closure always reads the latest searchTerm value
+      const currentSearch = searchTermRef.current;
       let url = `/api/products?`;
-      if (searchTerm) url += `search=${encodeURIComponent(searchTerm)}&`;
+      if (currentSearch) url += `search=${encodeURIComponent(currentSearch)}&`;
       if (minPrice) url += `minPrice=${minPrice}&`;
       if (maxPrice) url += `maxPrice=${maxPrice}&`;
       if (location) url += `location=${encodeURIComponent(location)}&`;
@@ -165,7 +185,7 @@ export default function CustomerPage() {
       if (res.data.success) {
         const products = res.data.products || [];
         setFilteredProducts(products);
-        
+
         // Fetch ratings for new products
         if (products.length > 0) {
           const productIds = products.map((p) => p._id);
@@ -185,25 +205,17 @@ export default function CustomerPage() {
     }
   };
 
-  const handleApplyFilters = () => {
-    const filters = { minPrice, maxPrice, location, minRating, active: true };
-    setAppliedFilters(filters);
-    fetchFilteredProducts(filters);
-    setShowFilters(false);
-  };
-
   const handleClearFilters = () => {
-    setMinPrice("");
-    setMaxPrice("");
-    setLocation("");
-    setMinRating(0);
-    setAppliedFilters({ minPrice: "", maxPrice: "", location: "", minRating: 0, active: false });
-    setIsFiltering(false);
-    setFilteredProducts([]);
+    // Dispatch to layout sidebar so it resets too
+    window.dispatchEvent(new CustomEvent("clearFilters"));
   };
 
-  const displayProducts = isFiltering 
-    ? filteredProducts.filter(p => !appliedFilters.minRating || (productRatings[p._id]?.average || 0) >= appliedFilters.minRating)
+  const displayProducts = isFiltering
+    ? filteredProducts.filter(
+        (p) =>
+          !appliedFilters.minRating ||
+          (productRatings[p._id]?.average || 0) >= appliedFilters.minRating
+      )
     : featuredProducts;
 
   const fetchWishlistStatus = async () => {
@@ -304,10 +316,12 @@ export default function CustomerPage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    // Keep ref in sync before calling fetch
+    searchTermRef.current = searchTerm;
     const filters = { ...appliedFilters, active: true };
     setAppliedFilters(filters);
     fetchFilteredProducts(filters);
-    
+
     // Scroll to products section
     const productsSection = document.getElementById("products");
     if (productsSection) {
@@ -459,7 +473,10 @@ export default function CustomerPage() {
                 <input
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    searchTermRef.current = e.target.value;
+                  }}
                   placeholder="Search products..."
                   className="flex-1 px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-900 placeholder-gray-500 focus:outline-none"
                 />
@@ -626,35 +643,23 @@ export default function CustomerPage() {
       )}
     </div>
 
-       {/* Featured / Search Results Section */}
-      <div id="products" className="mb-8 md:mb-12">
+      {/* Featured / Search Results Section */}
+      <div id="products" className="mb-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 dark:text-white">
               {isFiltering ? "Search Results" : "Featured Products"}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
-              {isFiltering 
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-xs">
+              {isFiltering
                 ? `Showing ${displayProducts.length} items for your criteria`
                 : "Handpicked just for you"}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm lg:hidden"
-            >
-              <FiFilter className={appliedFilters.active ? "text-orange-500" : ""} />
-              Filters
-              {appliedFilters.active && <span className="w-2 h-2 bg-orange-500 rounded-full"></span>}
-            </button>
             {!isFiltering && (
-              <Link
-                href="/dashboard/customer/search"
-                className="text-orange-500 hover:text-orange-600 font-semibold text-xs md:text-sm flex items-center gap-1 md:gap-2"
-              >
-                View All
-                <FiArrowRight className="w-3 h-3 md:w-4 md:h-4" />
+              <Link href="/dashboard/customer/search" className="text-orange-500 hover:text-orange-600 font-semibold text-sm flex items-center gap-1">
+                View All <FiArrowRight className="w-4 h-4" />
               </Link>
             )}
             {isFiltering && (
@@ -669,256 +674,103 @@ export default function CustomerPage() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Desktop Filter Sidebar */}
-          <aside className="hidden lg:block w-64 shrink-0 space-y-6">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm sticky top-20">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-gray-900 dark:text-white">Filters</h3>
-                {appliedFilters.active && (
-                  <button onClick={handleClearFilters} className="text-[10px] text-orange-500 hover:underline">Clear All</button>
-                )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+
+          {/* Grid content: Loading vs Products */}
+          {productsLoading ? (
+            <>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-72 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+              ))}
+            </>
+          ) : displayProducts.length === 0 ? (
+            <div className="col-span-full bg-white dark:bg-gray-900 rounded-3xl p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm">
+              <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiSearch className="w-8 h-8 text-orange-400" />
               </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No matching products</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xs mx-auto mb-6">Try adjusting your filters to find what you're looking for.</p>
+              <button onClick={handleClearFilters} className="px-6 py-2.5 bg-orange-500 text-white rounded-xl font-bold shadow-lg hover:shadow-orange-200 transition-all">Clear All Filters</button>
+            </div>
+          ) : (
+            <>
+              {displayProducts.map((product) => {
+                const mainImage = product.images?.[0];
+                const hasActiveDiscount = isDiscountActive(product);
+                const discountedPrice = getDiscountedPrice(product);
+                const isAdding = addingToCart[product._id];
+                const rData = product.productRating || productRatings[product._id];
+                const hasRatings = rData && (rData.count > 0 || rData.totalRatings > 0);
+                const averageRating = rData ? (rData.average || rData.rating || 0) : 0;
+                const reviewCount = rData ? (rData.count || rData.totalRatings || 0) : 0;
 
-              {/* Price Range */}
-              <div className="mb-6">
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Price Range</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-orange-500 outline-none"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-orange-500 outline-none"
-                  />
-                </div>
-              </div>
+                return (
+                  <div key={product._id} className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-800">
+                    <div className="relative bg-orange-50 dark:bg-gray-800 h-44">
+                      {mainImage ? (
+                        <img src={mainImage} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800"><FiPackage className="text-gray-300 text-4xl" /></div>
+                      )}
+                      <div className="absolute top-3 left-2.5 flex flex-col gap-1.5">
+                        {hasActiveDiscount && <span className="bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-lg">-{product.discountPercentage}% OFF</span>}
+                        {product.activeSlashId && <span className="bg-orange-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">🔥 Group Buy</span>}
+                        {product.hasActivePowerHour && <span className="bg-blue-600 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">⚡ Power Hour</span>}
+                      </div>
+                      <button
+                        onClick={(e) => { e.preventDefault(); handleToggleWishlist(product._id, product.name); }}
+                        disabled={togglingWishlist[product._id]}
+                        className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl flex items-center justify-center hover:scale-110 transition-all shadow-md"
+                      >
+                        <FiHeart className={`text-base ${wishlistItems.has(product._id) ? "text-red-500 fill-current" : "text-gray-700 dark:text-gray-300"}`} />
+                      </button>
+                    </div>
 
-              {/* Location */}
-              <div className="mb-6">
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Location</label>
-                <input
-                  type="text"
-                  placeholder="City or State"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-orange-500 outline-none"
-                />
-              </div>
-
-              {/* Rating */}
-              <div className="mb-8">
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Min Rating</label>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      onClick={() => setMinRating(star === minRating ? 0 : star)}
-                      className="p-1 transition-colors"
-                    >
-                      <FiStar
-                        className={`w-5 h-5 ${
-                          star <= minRating
-                            ? "text-yellow-400 fill-current"
-                            : "text-gray-300 dark:text-gray-600"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={handleApplyFilters}
-                className="w-full py-3 bg-gradient-to-r from-orange-500 to-green-500 text-white rounded-xl font-bold text-xs shadow-lg hover:shadow-orange-200 transition-all hover:scale-[1.02] mb-8"
-              >
-                Apply Filters
-              </button>
-
-              {/* Quick Picks / Featured in Sidebar */}
-              {!isFiltering && products.length > 0 && (
-                <div className="pt-6 border-t border-gray-100 dark:border-gray-800">
-                  <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-orange-500 rounded-full"></span>
-                    Quick Picks
-                  </h4>
-                  <div className="space-y-4">
-                    {products.slice(0, 3).map((p) => (
-                      <Link key={p._id} href={`/dashboard/customer/products/${p._id}`} className="flex gap-3 group/item">
-                        <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
-                          <img src={p.images?.[0] || ""} alt="" className="w-full h-full object-cover group-hover/item:scale-110 transition-transform" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-bold text-gray-900 dark:text-white truncate group-hover/item:text-orange-500 transition-colors">{p.name}</p>
-                          <p className="text-[10px] text-orange-500 font-bold">{fmt(getDiscounted(p))}</p>
-                          <div className="flex items-center gap-1 opacity-60">
-                            <FiStar className="w-2 h-2 text-yellow-500 fill-current" />
-                            <span className="text-[8px] dark:text-gray-400">{ratings[p._id]?.average?.toFixed(1) || "New"}</span>
-                          </div>
-                        </div>
+                    <div className="p-3">
+                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{product.category?.name || "Local"}</span>
+                      <Link href={`/dashboard/customer/products/${product._id}`}>
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5 line-clamp-1 hover:text-orange-500 transition-colors cursor-pointer">{toSentenceCase(product.name)}</h3>
                       </Link>
-                    ))}
-                  </div>
-                  <Link href="/dashboard/customer/search" className="block mt-4 text-center text-[10px] font-bold text-gray-400 hover:text-orange-500 transition-colors uppercase tracking-widest">View More</Link>
-                </div>
-              )}
-            </div>
-          </aside>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1 line-clamp-1">
+                        by {product.vendor?.businessName || "Local Vendor"}
+                      </p>
 
-          {/* Mobile Filter Overlay */}
-          {showFilters && (
-            <div className="fixed inset-0 z-50 lg:hidden">
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowFilters(false)}></div>
-              <div className="absolute bottom-0 inset-x-0 bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl transition-transform duration-300">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold">Filters</h3>
-                  <button onClick={() => setShowFilters(false)}><FiX className="w-6 h-6" /></button>
-                </div>
-                
-                <div className="space-y-6 mb-8">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Price Range</label>
-                    <div className="flex gap-3">
-                      <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none" />
-                      <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Location</label>
-                    <input type="text" placeholder="City or State" value={location} onChange={e => setLocation(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Min Rating</label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map(s => (
-                        <button key={s} onClick={() => setMinRating(s === minRating ? 0 : s)} className="p-2">
-                          <FiStar className={`w-6 h-6 ${s <= minRating ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                      <div className="flex items-center gap-1 mb-2">
+                        {hasRatings ? (
+                          <>
+                            <FiStar className="text-yellow-400 text-xs fill-current" />
+                            <span className="text-xs font-bold text-gray-900 dark:text-white">{averageRating.toFixed(1)}</span>
+                            <span className="text-[9px] text-gray-500">({reviewCount} {reviewCount === 1 ? "review" : "reviews"})</span>
+                          </>
+                        ) : <span className="text-[9px] text-gray-400 italic">No reviews</span>}
+                      </div>
 
-                <div className="flex gap-3">
-                  <button onClick={handleClearFilters} className="flex-1 py-4 border border-gray-200 dark:border-gray-700 rounded-xl font-bold text-sm">Clear All</button>
-                  <button onClick={handleApplyFilters} className="flex-[2] py-4 bg-orange-500 text-white rounded-xl font-bold text-sm">Apply Filters</button>
-                </div>
-              </div>
-            </div>
-          )}
+                      <div className="flex items-center gap-1 mb-2 text-gray-500">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
+                        <span className="text-[10px]">{product.vendor?.city || "Nigeria"}</span>
+                      </div>
 
-          {/* Product Grid */}
-          <div className="flex-1">
-            {productsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="h-72 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
-                ))}
-              </div>
-            ) : displayProducts.length === 0 ? (
-              <div className="bg-white dark:bg-gray-900 rounded-3xl p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm">
-                <div className="w-20 h-20 bg-orange-50 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <FiFilter className="w-8 h-8 text-orange-400" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No products found</h3>
-                <p className="text-gray-500 dark:text-gray-400 max-w-xs mx-auto mb-8">We couldn't find any products matching your current filters. Try adjusting your criteria.</p>
-                <button
-                  onClick={handleClearFilters}
-                  className="px-8 py-3 bg-orange-500 text-white rounded-xl font-bold shadow-lg hover:shadow-orange-200 transition-all"
-                >
-                  Clear All Filters
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {displayProducts.map((product) => {
-                  const mainImage = product.images?.[0];
-                  const hasActiveDiscount = isDiscountActive(product);
-                  const discountedPrice = getDiscountedPrice(product);
-                  const isAdding = addingToCart[product._id];
-                  const rData = product.productRating || productRatings[product._id];
-                  const hasRatings = rData && (rData.count > 0 || rData.totalRatings > 0);
-                  const averageRating = rData ? (rData.average || rData.rating || 0) : 0;
-                  const reviewCount = rData ? (rData.count || rData.totalRatings || 0) : 0;
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base font-bold text-gray-900 dark:text-white">{formatCurrency(discountedPrice)}</span>
+                        {hasActiveDiscount && <span className="text-xs text-gray-400 line-through">{formatCurrency(product.price)}</span>}
+                      </div>
 
-                  const badges = [];
-                  const isNew = product.createdAt && (new Date() - new Date(product.createdAt)) < 7 * 24 * 60 * 60 * 1000;
-                  const isBestSeller = (product.totalSold || 0) >= 10;
-                  const isTopRated = hasRatings && averageRating >= 4.5 && reviewCount >= 3;
-
-                  if (isBestSeller) badges.push({ text: "🔥 Best Seller", color: "bg-gradient-to-r from-orange-500 to-yellow-500" });
-                  else if (isTopRated) badges.push({ text: "⭐ Top Rated", color: "bg-purple-500" });
-                  else if (isNew) badges.push({ text: "✨ New Arrival", color: "bg-green-500" });
-
-                  return (
-                    <div key={product._id} className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-800 group">
-                      <div className="relative bg-neutral-100 dark:bg-gray-800 h-44">
-                        {mainImage ? (
-                          <img src={mainImage} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800"><FiPackage className="text-gray-300 text-4xl" /></div>
-                        )}
-                        <div className="absolute top-3 left-2.5 flex flex-col gap-1.5">
-                          {hasActiveDiscount && <span className="bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-lg">-{product.discountPercentage}% OFF</span>}
-                          {badges.map((b, i) => <span key={i} className={`${b.color} text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-md`}>{b.text}</span>)}
-                        </div>
+                      <div className="flex gap-2">
                         <button
-                          onClick={(e) => { e.preventDefault(); handleToggleWishlist(product._id, product.name); }}
-                          disabled={togglingWishlist[product._id]}
-                          className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl flex items-center justify-center hover:scale-110 transition-all shadow-md"
+                          onClick={() => handleAddToCart(product)}
+                          disabled={isAdding || product.quantity <= 0}
+                          className={`flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold text-xs hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 ${isAdding || product.quantity <= 0 ? "bg-gray-300 text-gray-500 cursor-not-allowed" : ""}`}
                         >
-                          <FiHeart className={`text-base ${wishlistItems.has(product._id) ? "text-red-500 fill-current" : "text-gray-700 dark:text-gray-300"}`} />
+                          {isAdding? "Adding..." : product.quantity <= 0 ? "Out of Stock" : <><FiShoppingCart className="w-3 h-3" /> Add to Cart</>}
                         </button>
-                      </div>
-
-                      <div className="p-3">
-                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{product.category?.name || "Local"}</span>
-                        <Link href={`/dashboard/customer/products/${product._id}`}>
-                          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5 line-clamp-1 hover:text-orange-500 transition-colors cursor-pointer">{toSentenceCase(product.name)}</h3>
-                        </Link>
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1">
-                          by {product.vendor?.businessName || "Local Vendor"} • <span className="flex items-center gap-0.5"><FiFilter className="w-2 h-2" />{product.vendor?.city || "Lagos"}</span>
-                        </p>
-
-                        <div className="flex items-center gap-1 mb-2">
-                          {hasRatings ? (
-                            <>
-                              <FiStar className="text-yellow-400 text-xs fill-current" />
-                              <span className="text-xs font-bold text-gray-900 dark:text-white">{averageRating.toFixed(1)}</span>
-                              <span className="text-[9px] text-gray-500">({reviewCount})</span>
-                            </>
-                          ) : <span className="text-[9px] text-gray-400 italic">No reviews</span>}
-                        </div>
-
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrency(discountedPrice)}</span>
-                          {hasActiveDiscount && <span className="text-xs text-gray-400 line-through">{formatCurrency(product.price)}</span>}
-                        </div>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleAddToCart(product)}
-                            disabled={isAdding}
-                            className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${isAdding ? "bg-gray-300 text-gray-500" : "bg-gradient-to-r from-orange-500 to-green-500 text-white hover:shadow-lg hover:scale-[1.02]"}`}
-                          >
-                            {isAdding ? "Adding..." : <><FiShoppingCart className="w-3 h-3" /> Add</>}
-                          </button>
-                          <Link href={`/dashboard/customer/products/${product._id}`} className="p-2.5 border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 transition-all flex items-center justify-center"><FiEye className="w-3 h-3" /></Link>
-                        </div>
+                        <Link href={`/dashboard/customer/products/${product._id}`} className="px-2.5 border-2 border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 transition-all flex items-center justify-center"><FiEye className="w-3 h-3" /></Link>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -58,4 +58,27 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Thin SLEEK Scrollbar */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 5px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+  }
+
+  /* Dark mode support */
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
 }

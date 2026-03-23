@@ -143,12 +143,22 @@ export default function CheckoutPage() {
       const data = await response.json();
 
       if (data.success) {
-        if (data.items.length === 0) {
+        const items = data.items || [];
+        if (items.length === 0) {
           toast.error("Your cart is empty");
           router.push("/dashboard/customer/cart");
           return;
         }
-        setCartItems(data.items || []);
+
+        // 🔥 Check for out-of-stock items
+        const outOfStockItems = items.filter(item => (item.product.quantity || 0) <= 0);
+        if (outOfStockItems.length > 0) {
+          toast.error("Some items in your cart are out of stock. Please remove them to continue.");
+          router.push("/dashboard/customer/cart");
+          return;
+        }
+
+        setCartItems(items);
       }
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -346,6 +356,14 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!validateForm()) return;
+
+    // 🔥 PRE-ORDER STOCK CHECK
+    const outOfStockItems = cartItems.filter(item => (item.product.quantity || 0) <= 0);
+    if (outOfStockItems.length > 0) {
+      toast.error("Some items in your cart are out of stock. Please remove them to continue.");
+      router.push("/dashboard/customer/cart");
+      return;
+    }
 
     setPlacingOrder(true);
 

@@ -189,14 +189,14 @@ export default function StorefrontPage() {
     window.addEventListener("scroll", h);
     return () => window.removeEventListener("scroll", h);
   }, []);
-
+    
   /* ── fetch data ── */
   useEffect(() => {
     (async () => {
       try {
         const [catRes, prodRes] = await Promise.all([
           fetch("/api/categories"),
-          fetch("/api/products/featured?limit=8"),
+          fetch("/api/products?limit=8"),
         ]);
         const catData  = await catRes.json();
         const prodData = await prodRes.json();
@@ -649,7 +649,7 @@ export default function StorefrontPage() {
                   {isFiltering ? "Search Results" : "Featured Products"}
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 text-xs">
-                  {isFiltering 
+                  {isFiltering
                     ? `Showing ${displayProducts.length} items for your criteria`
                     : "Handpicked just for you"}
                 </p>
@@ -680,10 +680,10 @@ export default function StorefrontPage() {
               </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Desktop Filter Sidebar */}
-              <aside className="hidden lg:block w-64 shrink-0 space-y-6">
-                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm sticky top-20">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Desktop Filter Sidebar - Now a grid item that spans multiple rows */}
+              <div className="hidden lg:block lg:row-span-3 sticky top-20 self-start">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="font-bold text-gray-900 dark:text-white">Filters</h3>
                     {appliedFilters.active && (
@@ -748,51 +748,23 @@ export default function StorefrontPage() {
 
                   <button
                     onClick={handleApplyFilters}
-                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-green-500 text-white rounded-xl font-bold text-xs shadow-lg hover:shadow-orange-200 transition-all hover:scale-[1.02] mb-8"
+                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-green-500 text-white rounded-xl font-bold text-xs shadow-lg hover:shadow-orange-200 transition-all hover:scale-[1.02]"
                   >
                     Apply Filters
                   </button>
-
-                  {/* Quick Picks / Featured in Sidebar */}
-                  {!isFiltering && products.length > 0 && (
-                    <div className="pt-6 border-t border-gray-100 dark:border-gray-800">
-                      <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <span className="w-1 h-4 bg-orange-500 rounded-full"></span>
-                        Quick Picks
-                      </h4>
-                      <div className="space-y-4">
-                        {products.slice(0, 3).map((p) => (
-                          <Link key={p._id} href={isLoggedIn ? `/dashboard/customer/products/${p._id}` : "/login"} className="flex gap-3 group/item">
-                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
-                              <img src={p.images?.[0] || ""} alt="" className="w-full h-full object-cover group-hover/item:scale-110 transition-transform" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] font-bold text-gray-900 dark:text-white truncate group-hover/item:text-orange-500 transition-colors">{p.name}</p>
-                              <p className="text-[10px] text-orange-500 font-bold">{fmt(getDiscounted(p))}</p>
-                              <div className="flex items-center gap-1 opacity-60">
-                                <FiStar className="w-2 h-2 text-yellow-500 fill-current" />
-                                <span className="text-[8px] dark:text-gray-400">{ratings[p._id]?.average?.toFixed(1) || "New"}</span>
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                      <Link href="/dashboard/customer" className="block mt-4 text-center text-[10px] font-bold text-gray-400 hover:text-orange-500 transition-colors uppercase tracking-widest">View More</Link>
-                    </div>
-                  )}
                 </div>
-              </aside>
+              </div>
 
-              {/* Mobile Filter Drawer */}
+              {/* Mobile Filter Drawer logic stays same */}
               {showFilters && (
                 <div className="fixed inset-0 z-[60] lg:hidden">
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowFilters(false)}></div>
-                  <div className="absolute bottom-0 inset-x-0 bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl transition-transform duration-300">
+                  <div className="absolute bottom-0 inset-x-0 bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl">
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-lg font-bold dark:text-white">Filters</h3>
                       <button onClick={() => setShowFilters(false)} className="dark:text-white"><FiX className="w-6 h-6" /></button>
                     </div>
-                    
+
                     <div className="space-y-6 mb-8">
                       <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Price Range</label>
@@ -825,146 +797,98 @@ export default function StorefrontPage() {
                 </div>
               )}
 
-              {/* Product Grid Area */}
-              <div className="flex-1">
-                {loading ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {[...Array(6)].map((_, i) => <div key={i} className="h-72 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse"/>)}
+              {/* Grid content starts: Loading states */}
+              {loading ? (
+                <>
+                  {[...Array(6)].map((_, i) => <div key={i} className="h-72 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"/>)}
+                </>
+              ) : displayProducts.length === 0 ? (
+                <div className="lg:col-span-3 bg-white dark:bg-gray-900 rounded-3xl p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm">
+                  <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FiSearch className="w-8 h-8 text-orange-400" />
                   </div>
-                ) : displayProducts.length === 0 ? (
-                  <div className="bg-white dark:bg-gray-900 rounded-3xl p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm">
-                    <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FiSearch className="w-8 h-8 text-orange-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No matching products</h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xs mx-auto mb-6">Try adjusting your filters or search keywords to find what you're looking for.</p>
-                    <button onClick={handleClearFilters} className="px-6 py-2.5 bg-orange-500 text-white rounded-xl font-bold shadow-lg hover:shadow-orange-200 transition-all">Clear All Filters</button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {displayProducts.map((product) => {
-                  const img = product.images?.[0];
-                  const hasDiscount = isDiscountActive(product);
-                  const discPrice = getDiscounted(product);
-                  const ratingData = ratings[product._id];
-                  const hasRating = ratingData && ratingData.count > 0;
-                  const isAdding = addingCart[product._id];
-                  const isToggling = togWishlist[product._id];
-                  const inWishlist = wishlist.has(product._id);
-
-                  // Dynamic Badge Logic
-                  const isNew = product.createdAt && (new Date() - new Date(product.createdAt)) < 7 * 24 * 60 * 60 * 1000; // Under 7 days old
-                  const isBestSeller = (product.totalSold || 0) >= 10; // Threshold for best seller
-                  const isTopRated = hasRating && ratingData.average >= 4.5 && ratingData.count >= 3;
-
-                  return (
-                    <div key={product._id} className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-800 group">
-                      {/* Image */}
-                      <div className="relative bg-gray-100 dark:bg-gray-800 h-44">
-                        {img
-                          ? <img src={img} alt={product.name} className="w-full h-full object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-500"/>
-                          : <div className="w-full h-full flex items-center justify-center"><FiPackage className="text-gray-300 dark:text-gray-600 text-4xl"/></div>
-                        }
-                        {/* Status Badges */}
-                        <div className="absolute top-3 left-2.5 flex flex-col gap-1.5 items-start">
-                          {hasDiscount && (
-                            <span className="bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">-{product.discountPercentage}% OFF</span>
-                          )}
-                          {!hasDiscount && isBestSeller && (
-                            <span className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">🔥 Best Seller</span>
-                          )}
-                          {!hasDiscount && !isBestSeller && isTopRated && (
-                            <span className="bg-purple-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">⭐ Top Rated</span>
-                          )}
-                          {!hasDiscount && !isBestSeller && !isTopRated && isNew && (
-                            <span className="bg-green-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">✨ New Arrival</span>
-                          )}
-                        </div>
-                        {/* Wishlist btn */}
-                        <button
-                          onClick={() => handleToggleWishlist(product._id, product.name)}
-                          disabled={isToggling}
-                          className="absolute top-3 right-3 w-8 h-8 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center hover:scale-110 transition-all shadow-md disabled:opacity-50"
-                          title={!isLoggedIn ? "Login to save" : inWishlist ? "Remove from wishlist" : "Add to wishlist"}
-                        >
-                          {isToggling
-                            ? <svg className="animate-spin h-4 w-4 text-orange-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                            : <FiHeart className={`text-base ${inWishlist && isLoggedIn ? "text-red-500 fill-current" : "text-gray-600 dark:text-gray-300"}`}/>
-                          }
-                        </button>
-                      </div>
-
-                      {/* Info */}
-                      <div className="p-3">
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">{product.category?.name || "Uncategorized"}</span>
-                        <Link href={isLoggedIn ? `/dashboard/customer/products/${product._id}` : `/login`}>
-                          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5 mt-1 line-clamp-1 hover:text-orange-500 transition cursor-pointer">{sentenceCase(product.name)}</h3>
-                        </Link>
-                        <p className="text-[10px] text-gray-400 mb-1">by {product.vendor?.businessName || "Local Vendor"}</p>
-
-                        {/* Rating */}
-                        <div className="flex items-center gap-1 mb-2">
-                          {hasRating ? (
-                            <>
-                              <FiStar className="text-yellow-400 text-xs fill-current"/>
-                              <span className="text-xs font-bold text-gray-900 dark:text-white">{ratingData.average.toFixed(1)}</span>
-                              <span className="text-[9px] text-gray-400">({ratingData.count})</span>
-                            </>
-                          ) : <span className="text-[9px] text-gray-400 italic">No reviews yet</span>}
-                        </div>
-
-                        {/* Price */}
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className={`text-base font-bold ${hasDiscount ? "text-green-600 dark:text-green-400" : "text-gray-900 dark:text-white"}`}>{fmt(discPrice)}</span>
-                          {hasDiscount && <span className="text-xs text-gray-400 line-through">{fmt(product.price)}</span>}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleAddToCart(product)}
-                            disabled={isAdding}
-                            className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
-                              isAdding ? "bg-gray-300 cursor-not-allowed text-gray-500"
-                              : !isLoggedIn ? "bg-gradient-to-r from-gray-700 to-gray-900 text-white hover:shadow-lg hover:scale-[1.02]"
-                              : "bg-gradient-to-r from-orange-500 to-green-500 text-white hover:shadow-lg hover:scale-[1.02]"
-                            }`}
-                          >
-                            {isAdding
-                              ? <><svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>Adding...</>
-                              : !isLoggedIn ? <><FiLogIn className="w-3 h-3"/> Login to Buy</>
-                              : <><FiShoppingCart className="w-3 h-3"/> Add to Cart</>
-                            }
-                          </button>
-                          <Link
-                            href={isLoggedIn ? `/dashboard/customer/products/${product._id}` : "/login"}
-                            className="px-2.5 py-2 border-2 border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 transition flex items-center justify-center"
-                            title="View Details"
-                          >
-                            <FiEye className="w-3 h-3"/>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No matching products</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xs mx-auto mb-6">Try adjusting your filters or search keywords to find what you're looking for.</p>
+                  <button onClick={handleClearFilters} className="px-6 py-2.5 bg-orange-500 text-white rounded-xl font-bold shadow-lg hover:shadow-orange-200 transition-all">Clear All Filters</button>
                 </div>
+              ) : (
+                <>
+                  {displayProducts.map((product) => {
+                    const img = product.images?.[0];
+                    const hasDiscount = isDiscountActive(product);
+                    const discPrice = getDiscounted(product);
+                    const ratingData = ratings[product._id];
+                    const hasRating = ratingData && ratingData.count > 0;
+                    const isAdding = addingCart[product._id];
+                    const isToggling = togWishlist[product._id];
+                    const inWishlist = wishlist.has(product._id);
+
+                    return (
+                      <div key={product._id} className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-800">
+                        <div className="relative bg-orange-50 dark:bg-gray-800 h-44">
+                          {img
+                            ? <img src={img} alt={product.name} className="w-full h-full object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-500"/>
+                            : <div className="w-full h-full flex items-center justify-center"><FiPackage className="text-gray-300 dark:text-gray-600 text-4xl"/></div>
+                          }
+                          <div className="absolute top-3 left-2.5 flex flex-col gap-1.5 items-start">
+                            {hasDiscount && <span className="bg-red-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">-{product.discountPercentage}% OFF</span>}
+                            {product.activeSlashId && <span className="bg-orange-500 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">🔥 Group Buy</span>}
+                            {product.hasActivePowerHour && <span className="bg-blue-600 text-white text-[9px] font-bold px-3 py-1 rounded-full shadow">⚡ Power Hour</span>}
+                          </div>
+                          <button
+                            onClick={() => handleToggleWishlist(product._id, product.name)}
+                            disabled={isToggling}
+                            className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl flex items-center justify-center hover:scale-110 transition-all shadow-md"
+                          >
+                            {isToggling ? <FiX className="animate-spin text-orange-500 text-xs" /> : <FiHeart className={`${inWishlist && isLoggedIn ? "text-red-500 fill-current" : "text-gray-600 dark:text-gray-300"}`}/>}
+                          </button>
+                        </div>
+                        <div className="p-3">
+                          <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">{product.category?.name || "Uncategorized"}</span>
+                          <Link href={isLoggedIn ? `/dashboard/customer/products/${product._id}` : `/login`}><h3 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5 mt-1 line-clamp-1 hover:text-orange-500 transition cursor-pointer">{sentenceCase(product.name)}</h3></Link>
+                          <p className="text-[10px] text-gray-400 mb-1">by {product.vendor?.businessName || "Local Vendor"}</p>
+                          <div className="flex items-center gap-1 mb-2">
+                            {hasRating ? (
+                              <>
+                                <FiStar className="text-yellow-400 text-xs fill-current"/><span className="text-xs font-bold text-gray-900 dark:text-white">{ratingData.average.toFixed(1)}</span>
+                                <span className="text-[9px] text-gray-500">({ratingData.count} {ratingData.count === 1 ? "review" : "reviews"})</span>
+                              </>
+                            ) : <span className="text-[9px] text-gray-400 italic">No reviews</span>}
+                          </div>
+                          <div className="flex items-center gap-1 mb-2 text-gray-500">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
+                            <span className="text-[10px]">{product.vendor?.city || "Nigeria"}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-base font-bold text-gray-900 dark:text-white">{fmt(discPrice)}</span>
+                            {hasDiscount && <span className="text-xs text-gray-400 line-through">{fmt(product.price)}</span>}
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleAddToCart(product)} disabled={isAdding} className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold text-xs hover:bg-orange-600 transition-colors">
+                              {isAdding ? "Adding..." : "Add to Cart"}
+                            </button>
+                            <Link href={isLoggedIn ? `/dashboard/customer/products/${product._id}` : "/login"} className="px-2.5 py-2 border-2 border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 transition flex items-center justify-center"><FiEye className="w-3 h-3"/></Link>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
               )}
             </div>
           </div>
-        </div>
 
-        {/* ── Footer strip ── */}
-        <div className="mt-6 py-5 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
-          <span>© {new Date().getFullYear()} AfriCart — Your Nigerian Marketplace</span>
-          <div className="flex items-center gap-4">
-            <Link href="/login"    className="hover:text-orange-500 transition">Login</Link>
-            <Link href="/register" className="hover:text-orange-500 transition">Register</Link>
+          {/* ── Footer strip ── */}
+          <div className="mt-6 py-5 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
+            <span>© {new Date().getFullYear()} AfriCart — Your Nigerian Marketplace</span>
+            <div className="flex items-center gap-4">
+              <Link href="/login"    className="hover:text-orange-500 transition">Login</Link>
+              <Link href="/register" className="hover:text-orange-500 transition">Register</Link>
+            </div>
           </div>
-        </div>
 
-      </div>
-    </main>
-  </div>
-);
+        </div>
+      </main>
+    </div>
+  );
 }
