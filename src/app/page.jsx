@@ -748,10 +748,38 @@ export default function StorefrontPage() {
 
                   <button
                     onClick={handleApplyFilters}
-                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-green-500 text-white rounded-xl font-bold text-xs shadow-lg hover:shadow-orange-200 transition-all hover:scale-[1.02]"
+                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-green-500 text-white rounded-xl font-bold text-xs shadow-lg hover:shadow-orange-200 transition-all hover:scale-[1.02] mb-8"
                   >
                     Apply Filters
                   </button>
+
+                  {/* Quick Picks / Featured in Sidebar */}
+                  {!isFiltering && products.length > 0 && (
+                    <div className="pt-6 border-t border-gray-100 dark:border-gray-800">
+                      <h4 className="text-xs font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <span className="w-1 h-4 bg-orange-500 rounded-full"></span>
+                        Quick Picks
+                      </h4>
+                      <div className="space-y-4">
+                        {products.slice(0, 3).map((p) => (
+                          <Link key={p._id} href={isLoggedIn ? `/dashboard/customer/products/${p._id}` : "/login"} className="flex gap-3 group/item">
+                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
+                              <img src={p.images?.[0] || ""} alt="" className="w-full h-full object-cover group-hover/item:scale-110 transition-transform" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] font-bold text-gray-900 dark:text-white truncate group-hover/item:text-orange-500 transition-colors">{p.name}</p>
+                              <p className="text-[10px] text-orange-500 font-bold">{fmt(getDiscounted(p))}</p>
+                              <div className="flex items-center gap-1 opacity-60">
+                                <FiStar className="w-2 h-2 text-yellow-500 fill-current" />
+                                <span className="text-[8px] dark:text-gray-400">{ratings[p._id]?.average?.toFixed(1) || "New"}</span>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                      <Link href="/dashboard/customer" className="block mt-4 text-center text-[10px] font-bold text-gray-400 hover:text-orange-500 transition-colors uppercase tracking-widest">View More</Link>
+                    </div>
+                  )}
                 </div>
               </aside>
 
