@@ -30,6 +30,9 @@ export async function GET(request) {
     const categoryId = searchParams.get('categoryId');
     const search = searchParams.get('search');
     const limit = parseInt(searchParams.get('limit')) || 100;
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+    const location = searchParams.get('location');
 
     let query = { isActive: true };
 
@@ -42,6 +45,23 @@ export async function GET(request) {
         { name: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
       ];
+    }
+
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    if (location) {
+      const vendors = await Vendor.find({
+        $or: [
+          { city: { $regex: location, $options: 'i' } },
+          { state: { $regex: location, $options: 'i' } }
+        ]
+      }).select('_id');
+      const vendorIds = vendors.map(v => v._id);
+      query.vendorId = { $in: vendorIds };
     }
 
     const products = await Product.find(query)

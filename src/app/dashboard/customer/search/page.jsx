@@ -12,6 +12,7 @@ import {
   FiShoppingCart,
   FiX,
   FiEye,
+  FiFilter,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 
@@ -28,6 +29,19 @@ function SearchResults() {
   const [wishlistItems, setWishlistItems] = useState(new Set());
   const [togglingWishlist, setTogglingWishlist] = useState({});
 
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [location, setLocation] = useState("");
+  const [minRating, setMinRating] = useState(0);
+  const [showFilters, setShowFilters] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState({ minPrice: "", maxPrice: "", location: "" });
+
+  const handleApplyFilters = () => setAppliedFilters({ minPrice, maxPrice, location });
+  const handleClearFilters = () => {
+    setMinPrice(""); setMaxPrice(""); setLocation(""); setMinRating(0);
+    setAppliedFilters({ minPrice: "", maxPrice: "", location: "" });
+  };
+
   // Debounced live search — fires 350ms after user stops typing
   useEffect(() => {
     if (!searchTerm.trim()) {
@@ -36,24 +50,30 @@ function SearchResults() {
       return;
     }
     const timer = setTimeout(() => {
-      fetchProducts(searchTerm.trim());
+      fetchProducts(searchTerm.trim(), appliedFilters);
       // Keep URL in sync without a full navigation
       router.replace(`/dashboard/customer/search?q=${encodeURIComponent(searchTerm.trim())}`, { scroll: false });
     }, 350);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, appliedFilters]);
 
   useEffect(() => {
     fetchWishlistStatus();
   }, []);
 
-  const fetchProducts = async (q) => {
+  const fetchProducts = async (q, filters = appliedFilters) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const queryParams = new URLSearchParams();
+      queryParams.append("search", q);
+      if (filters.minPrice) queryParams.append("minPrice", filters.minPrice);
+      if (filters.maxPrice) queryParams.append("maxPrice", filters.maxPrice);
+      if (filters.location) queryParams.append("location", filters.location);
       
-      const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`, { headers });
+      const res = await fetch(`/api/products?${queryParams.toString()}`, { headers });
       const data = await res.json();
       if (data.success) {
         setProducts(data.products || []);
@@ -156,6 +176,15 @@ function SearchResults() {
   const getDiscountedPrice = (product) =>
     isDiscountActive(product) ? product.price * (1 - product.discountPercentage / 100) : product.price;
 
+  const filteredProducts = products.filter((product) => {
+    if (minRating > 0) {
+      const ratingData = productRatings[product._id];
+      const avg = ratingData ? ratingData.average : 0;
+      if (avg < minRating) return false;
+    }
+    return true;
+  });
+
   return (
     <div className="min-h-screen pb-12">
       {/* Header */}
@@ -173,7 +202,7 @@ function SearchResults() {
           </h2>
           {!loading && searchTerm.trim() && (
             <p className="text-gray-600 text-xs sm:text-sm">
-              {products.length} result{products.length !== 1 ? "s" : ""} for&nbsp;
+              {filteredProducts.length} result{filteredProducts.length !== 1 ? "s" : ""} for&nbsp;
               <span className="font-semibold text-orange-500">"{searchTerm}"</span>
             </p>
           )}
@@ -206,29 +235,81 @@ function SearchResults() {
         </div>
       </div>
 
-      {/* Initial prompt — nothing typed yet */}
-      {!searchTerm.trim() && (
-        <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-          <FiSearch className="text-5xl text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">Start typing to search products...</p>
-        </div>
-      )}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Sidebar */}
+        <div className={`lg:w-64 flex-shrink-0 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm sticky top-24">
+            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FiFilter /> Filters
+            </h3>
 
-      {/* Empty state */}
-      {!loading && products.length === 0 && searchTerm.trim() && (
-        <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-          <FiSearch className="text-4xl text-gray-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-gray-900 mb-1">No results found</h3>
-          <p className="text-gray-500 text-sm">
-            We couldn't find any products matching "{searchTerm}".
-          </p>
-        </div>
-      )}
+            {/* Price */}
+            <div className="mb-5">
+              <label className="text-xs font-semibold text-gray-500 mb-2 block uppercase tracking-wide">Price Range (₦)</label>
+              <div className="flex items-center gap-2">
+                <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:outline-none placeholder-gray-400" />
+                <span className="text-gray-400">-</span>
+                <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:outline-none placeholder-gray-400" />
+              </div>
+            </div>
 
-      {/* Results grid */}
-      {!loading && products.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {products.map((product) => {
+            {/* Location */}
+            <div className="mb-5">
+              <label className="text-xs font-semibold text-gray-500 mb-2 block uppercase tracking-wide">Location</label>
+              <input type="text" placeholder="State/City" value={location} onChange={e => setLocation(e.target.value)} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:outline-none placeholder-gray-400" />
+            </div>
+
+            {/* Rating */}
+            <div className="mb-6">
+              <label className="text-xs font-semibold text-gray-500 mb-2 block uppercase tracking-wide">Minimum Rating</label>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                   <button key={star} onClick={() => setMinRating(star)} className={`text-xl transition-transform hover:scale-110 ${minRating >= star ? 'text-yellow-400' : 'text-gray-300'}`}>
+                     <FiStar className={minRating >= star ? "fill-current" : ""} />
+                   </button>
+                ))}
+                {minRating > 0 && <span className="text-xs text-gray-500 ml-2 font-semibold">& Up</span>}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <button onClick={handleApplyFilters} className="w-full py-2.5 bg-orange-500 text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-colors shadow-md shadow-orange-500/20">Apply Filters</button>
+              <button onClick={handleClearFilters} className="w-full py-2.5 bg-gray-100 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-200 transition-colors">Clear All</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 min-w-0">
+          <div className="lg:hidden mb-4">
+            <button onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 w-full justify-center transition-colors">
+              <FiFilter /> {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
+          </div>
+
+          {/* Initial prompt — nothing typed yet */}
+          {!searchTerm.trim() && (
+            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
+              <FiSearch className="text-5xl text-gray-200 mx-auto mb-3" />
+              <p className="text-gray-400 text-sm">Start typing to search products...</p>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!loading && filteredProducts.length === 0 && searchTerm.trim() && (
+            <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+              <FiSearch className="text-4xl text-gray-300 mx-auto mb-3" />
+              <h3 className="text-base font-bold text-gray-900 mb-1">No results found</h3>
+              <p className="text-gray-500 text-sm">
+                We couldn't find any products matching your search and filters.
+              </p>
+            </div>
+          )}
+
+          {/* Results grid */}
+          {!loading && filteredProducts.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {filteredProducts.map((product) => {
             const mainImage = product.images?.[0];
             const hasActiveDiscount = isDiscountActive(product);
             const discountedPrice = getDiscountedPrice(product);
@@ -325,6 +406,8 @@ function SearchResults() {
           })}
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 }

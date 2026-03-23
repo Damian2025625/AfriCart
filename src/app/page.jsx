@@ -7,7 +7,7 @@ import { RiShoppingCart2Line } from "react-icons/ri";
 import {
   FiHome, FiGrid, FiTag, FiSearch, FiBell, FiHeart, FiStar,
   FiMenu, FiX, FiLogIn, FiPackage, FiArrowRight, FiEye,
-  FiShoppingCart, FiChevronLeft, FiChevronRight,
+  FiShoppingCart, FiChevronLeft, FiChevronRight, FiFilter,
 } from "react-icons/fi";
 import {
   TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand,
@@ -131,6 +131,22 @@ export default function StorefrontPage() {
   const [slide, setSlide]               = useState(0);
   const [searchQ, setSearchQ]           = useState("");
 
+  // ── Search & Filter State ──
+  const [minPrice, setMinPrice]         = useState("");
+  const [maxPrice, setMaxPrice]         = useState("");
+  const [location, setLocation]         = useState("");
+  const [minRating, setMinRating]       = useState(0);
+  const [showFilters, setShowFilters]   = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState({
+    minPrice: "",
+    maxPrice: "",
+    location: "",
+    minRating: 0,
+    active: false,
+  });
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [isFiltering, setIsFiltering] = useState(false);
+
   /* ── detect login (non-blocking) ── */
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -203,6 +219,65 @@ export default function StorefrontPage() {
     })();
   }, []);
 
+  const fetchFilteredProducts = async (filters) => {
+    setLoading(true);
+    setIsFiltering(true);
+    try {
+      const { minPrice, maxPrice, location } = filters;
+      let url = `/api/products?`;
+      if (searchQ) url += `search=${encodeURIComponent(searchQ)}&`;
+      if (minPrice) url += `minPrice=${minPrice}&`;
+      if (maxPrice) url += `maxPrice=${maxPrice}&`;
+      if (location) url += `location=${encodeURIComponent(location)}&`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        setFilteredProducts(data.products || []);
+        
+        // Fetch ratings for new products
+        const ids = (data.products || []).map(p => p._id);
+        if (ids.length > 0) {
+          const rRes = await fetch("/api/products/ratings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productIds: ids }),
+          });
+          const rData = await rRes.json();
+          if (rData.success) {
+            setRatings(prev => ({ ...prev, ...rData.ratings }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error filtering products:", error);
+      toast.error("Failed to filter products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApplyFilters = () => {
+    const filters = { minPrice, maxPrice, location, minRating, active: true };
+    setAppliedFilters(filters);
+    fetchFilteredProducts(filters);
+    setShowFilters(false);
+  };
+
+  const handleClearFilters = () => {
+    setMinPrice("");
+    setMaxPrice("");
+    setLocation("");
+    setMinRating(0);
+    setAppliedFilters({ minPrice: "", maxPrice: "", location: "", minRating: 0, active: false });
+    setIsFiltering(false);
+    setFilteredProducts([]);
+  };
+
+  const displayProducts = isFiltering 
+    ? filteredProducts.filter(p => !appliedFilters.minRating || (ratings[p._id]?.average || 0) >= appliedFilters.minRating)
+    : products;
+
   /* ── fetch wishlist ── */
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -267,14 +342,31 @@ export default function StorefrontPage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    const q = searchQ.trim();
-    if (q) router.push(`/dashboard/customer/search?q=${encodeURIComponent(q)}`);
+    const filters = { ...appliedFilters, active: true };
+    setAppliedFilters(filters);
+    fetchFilteredProducts(filters);
+    
+    // Scroll to products section
+    const productsSection = document.getElementById("products");
+    if (productsSection) {
+      productsSection.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const handleHeaderSearch = (e) => {
     e.preventDefault();
-    const q = headerQ.trim();
-    if (q) { router.push(`/dashboard/customer/search?q=${encodeURIComponent(q)}`); setHeaderQ(""); }
+    if (headerQ.trim()) {
+      setSearchQ(headerQ);
+      const filters = { ...appliedFilters, active: true };
+      setAppliedFilters(filters);
+      fetchFilteredProducts(filters);
+      setHeaderQ("");
+      
+      const productsSection = document.getElementById("products");
+      if (productsSection) {
+        productsSection.scrollIntoView({ behavior: "smooth" });
+      }
+    }
   };
 
   const initials = user ? user.firstName.charAt(0).toUpperCase() + (user.lastName?.charAt(0).toUpperCase() || "") : "?";
@@ -549,23 +641,180 @@ export default function StorefrontPage() {
             )}
           </div>
 
-          {/* ── Featured Products ── */}
+          {/* ── Featured / Search Results Section ── */}
           <div id="products" className="mb-10">
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
               <div>
-                <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 dark:text-white">Featured Products</h2>
-                <p className="text-gray-500 dark:text-gray-400 text-xs">Handpicked just for you</p>
+                <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 dark:text-white">
+                  {isFiltering ? "Search Results" : "Featured Products"}
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400 text-xs">
+                  {isFiltering 
+                    ? `Showing ${displayProducts.length} items for your criteria`
+                    : "Handpicked just for you"}
+                </p>
               </div>
-              <Link href="/dashboard/customer" className="text-orange-500 hover:text-orange-600 font-semibold text-sm flex items-center gap-1">View All <FiArrowRight className="w-4 h-4"/></Link>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 transition-colors shadow-sm lg:hidden"
+                >
+                  <FiFilter className={appliedFilters.active ? "text-orange-500" : ""} />
+                  Filters
+                  {appliedFilters.active && <span className="w-2 h-2 bg-orange-500 rounded-full"></span>}
+                </button>
+                {!isFiltering && (
+                  <Link href="/dashboard/customer" className="text-orange-500 hover:text-orange-600 font-semibold text-sm flex items-center gap-1">
+                    View All <FiArrowRight className="w-4 h-4"/>
+                  </Link>
+                )}
+                {isFiltering && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-semibold text-xs md:text-sm flex items-center gap-1"
+                  >
+                    <FiX className="w-3 h-3" />
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
 
-            {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {[...Array(8)].map((_, i) => <div key={i} className="h-72 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"/>)}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {products.map((product, idx) => {
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Desktop Filter Sidebar */}
+              <aside className="hidden lg:block w-64 shrink-0 space-y-6">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm sticky top-20">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold text-gray-900 dark:text-white">Filters</h3>
+                    {appliedFilters.active && (
+                      <button onClick={handleClearFilters} className="text-[10px] text-orange-500 hover:underline">Clear All</button>
+                    )}
+                  </div>
+
+                  {/* Price Range */}
+                  <div className="mb-6">
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Price Range</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-orange-500 outline-none dark:text-white"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Max"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-orange-500 outline-none dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="mb-6">
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Location</label>
+                    <input
+                      type="text"
+                      placeholder="City or State"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-orange-500 outline-none dark:text-white"
+                    />
+                  </div>
+
+                  {/* Rating */}
+                  <div className="mb-8">
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Min Rating</label>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setMinRating(star === minRating ? 0 : star)}
+                          className="p-1 transition-colors"
+                        >
+                          <FiStar
+                            className={`w-5 h-5 ${
+                              star <= minRating
+                                ? "text-yellow-400 fill-current"
+                                : "text-gray-300 dark:text-gray-600"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleApplyFilters}
+                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-green-500 text-white rounded-xl font-bold text-xs shadow-lg hover:shadow-orange-200 transition-all hover:scale-[1.02]"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              </aside>
+
+              {/* Mobile Filter Drawer */}
+              {showFilters && (
+                <div className="fixed inset-0 z-[60] lg:hidden">
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowFilters(false)}></div>
+                  <div className="absolute bottom-0 inset-x-0 bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl transition-transform duration-300">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-bold dark:text-white">Filters</h3>
+                      <button onClick={() => setShowFilters(false)} className="dark:text-white"><FiX className="w-6 h-6" /></button>
+                    </div>
+                    
+                    <div className="space-y-6 mb-8">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Price Range</label>
+                        <div className="flex gap-3">
+                          <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none" />
+                          <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Location</label>
+                        <input type="text" placeholder="City or State" value={location} onChange={e => setLocation(e.target.value)} className="w-full p-3 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Min Rating</label>
+                        <div className="flex gap-2">
+                          {[1, 2, 3, 4, 5].map(s => (
+                            <button key={s} onClick={() => setMinRating(s === minRating ? 0 : s)} className="p-2">
+                              <FiStar className={`w-6 h-6 ${s <= minRating ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button onClick={handleClearFilters} className="flex-1 py-4 border border-gray-200 dark:border-gray-700 dark:text-white rounded-xl font-bold text-sm">Clear All</button>
+                      <button onClick={handleApplyFilters} className="flex-[2] py-4 bg-orange-500 text-white rounded-xl font-bold text-sm">Apply Filters</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Product Grid Area */}
+              <div className="flex-1">
+                {loading ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {[...Array(6)].map((_, i) => <div key={i} className="h-72 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse"/>)}
+                  </div>
+                ) : displayProducts.length === 0 ? (
+                  <div className="bg-white dark:bg-gray-900 rounded-3xl p-12 text-center border border-gray-100 dark:border-gray-800 shadow-sm">
+                    <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FiSearch className="w-8 h-8 text-orange-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No matching products</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xs mx-auto mb-6">Try adjusting your filters or search keywords to find what you're looking for.</p>
+                    <button onClick={handleClearFilters} className="px-6 py-2.5 bg-orange-500 text-white rounded-xl font-bold shadow-lg hover:shadow-orange-200 transition-all">Clear All Filters</button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {displayProducts.map((product) => {
                   const img = product.images?.[0];
                   const hasDiscount = isDiscountActive(product);
                   const discPrice = getDiscounted(product);
@@ -671,21 +920,23 @@ export default function StorefrontPage() {
                     </div>
                   );
                 })}
-              </div>
-            )}
-          </div>
-
-          {/* ── Footer strip ── */}
-          <div className="mt-6 py-5 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
-            <span>© {new Date().getFullYear()} AfriCart — Your Nigerian Marketplace</span>
-            <div className="flex items-center gap-4">
-              <Link href="/login"    className="hover:text-orange-500 transition">Login</Link>
-              <Link href="/register" className="hover:text-orange-500 transition">Register</Link>
+                </div>
+              )}
             </div>
           </div>
-
         </div>
-      </main>
-    </div>
-  );
+
+        {/* ── Footer strip ── */}
+        <div className="mt-6 py-5 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
+          <span>© {new Date().getFullYear()} AfriCart — Your Nigerian Marketplace</span>
+          <div className="flex items-center gap-4">
+            <Link href="/login"    className="hover:text-orange-500 transition">Login</Link>
+            <Link href="/register" className="hover:text-orange-500 transition">Register</Link>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+);
 }
