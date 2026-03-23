@@ -418,8 +418,8 @@ export default function CustomerLayout({ children }) {
             })}
           </nav>
 
-          {/* Filter Panel – only visible on home page, full sidebar */}
-          {pathname === "/dashboard/customer" && !sidebarCollapsed && (
+          {/* Filter Panel – visible on home page and search page, full sidebar */}
+          {(pathname === "/dashboard/customer" || pathname === "/dashboard/customer/search") && !sidebarCollapsed && (
             <div className="mt-6 px-3">
               <div className="border-t border-gray-100 dark:border-gray-800 pt-5">
                 <div className="flex items-center justify-between mb-4">

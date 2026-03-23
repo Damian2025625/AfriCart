@@ -6,18 +6,13 @@ import Category from '@/lib/mongodb/models/Category';
 import PowerHour from '@/lib/mongodb/models/PowerHour';
 import PriceOffer from '@/lib/mongodb/models/PriceOffer';
 import Customer from '@/lib/mongodb/models/Customer';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+import { verifyAuth } from '@/lib/auth';
 
 async function getUserIdFromToken(request) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) return null;
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET);
-    return decoded.userId;
-  } catch {
+    const user = await verifyAuth(request);
+    return user?._id;
+  } catch (error) {
     return null;
   }
 }

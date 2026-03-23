@@ -491,6 +491,56 @@ export default function StorefrontPage() {
             ))}
           </nav>
 
+          {/* Filters - Persistent in sidebar */}
+          {!collapsed && (
+            <div className="mt-6 px-4">
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-5">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <FiFilter className="text-xs" /> Filters
+                  </span>
+                  {appliedFilters.active && (
+                    <button onClick={handleClearFilters} className="text-[10px] text-orange-500 hover:underline">Clear</button>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Price</label>
+                    <div className="flex gap-2 mt-1.5">
+                      <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)}
+                        className="w-full px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-orange-500 dark:text-white" />
+                      <input type="number" placeholder="Max" value={maxPrice} onChange={e => setFilterMaxPrice ? e.target.value : setMaxPrice(e.target.value)}
+                        className="w-full px-2 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-orange-500 dark:text-white" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Location</label>
+                    <input type="text" placeholder="City or State" value={location} onChange={e => setLocation(e.target.value)}
+                      className="mt-1.5 w-full px-3 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs outline-none focus:ring-1 focus:ring-orange-500 dark:text-white" />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Min Rating</label>
+                    <div className="flex items-center gap-0.5 mt-1.5">
+                      {[1, 2, 3, 4, 5].map(s => (
+                        <button key={s} onClick={() => setMinRating(s === minRating ? 0 : s)} className="p-0.5">
+                          <FiStar className={`w-3.5 h-3.5 ${s <= minRating ? "text-yellow-400 fill-current" : "text-gray-300 dark:text-gray-600"}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button onClick={handleApplyFilters}
+                    className="w-full py-2 bg-orange-500 text-white rounded-lg text-[10px] font-bold hover:bg-orange-600 transition-all active:scale-95 shadow-lg shadow-orange-500/20">
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Guest promo banner */}
           {!isLoggedIn && !collapsed && (
             <div className="mx-3 mt-4 p-4 bg-gradient-to-br from-orange-500 to-green-500 rounded-2xl text-white text-center shadow-lg">
@@ -681,79 +731,7 @@ export default function StorefrontPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Desktop Filter Sidebar - Now a grid item that spans multiple rows */}
-              <div className="hidden lg:block lg:row-span-3 sticky top-20 self-start">
-                <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-bold text-gray-900 dark:text-white">Filters</h3>
-                    {appliedFilters.active && (
-                      <button onClick={handleClearFilters} className="text-[10px] text-orange-500 hover:underline">Clear All</button>
-                    )}
-                  </div>
-
-                  {/* Price Range */}
-                  <div className="mb-6">
-                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Price Range</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="number"
-                        placeholder="Min"
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-orange-500 outline-none dark:text-white"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Max"
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-orange-500 outline-none dark:text-white"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Location */}
-                  <div className="mb-6">
-                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Location</label>
-                    <input
-                      type="text"
-                      placeholder="City or State"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-xs focus:ring-1 focus:ring-orange-500 outline-none dark:text-white"
-                    />
-                  </div>
-
-                  {/* Rating */}
-                  <div className="mb-8">
-                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Min Rating</label>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          onClick={() => setMinRating(star === minRating ? 0 : star)}
-                          className="p-1 transition-colors"
-                        >
-                          <FiStar
-                            className={`w-5 h-5 ${
-                              star <= minRating
-                                ? "text-yellow-400 fill-current"
-                                : "text-gray-300 dark:text-gray-600"
-                            }`}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleApplyFilters}
-                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-green-500 text-white rounded-xl font-bold text-xs shadow-lg hover:shadow-orange-200 transition-all hover:scale-[1.02]"
-                  >
-                    Apply Filters
-                  </button>
-                </div>
-              </div>
+              {/* Desktop Filter Sidebar removed from here to global sidebar */}
 
               {/* Mobile Filter Drawer logic stays same */}
               {showFilters && (
