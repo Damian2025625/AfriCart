@@ -37,7 +37,7 @@ export const metadata = {
     description: "Discover and shop the best authentic products across Nigeria.",
   },
   verification: {
-    google: "PASTE_YOUR_GOOGLE_HTML_TAG_HERE", // Replace with the tag from Google Search Console
+    google: "DH3XIP0MNfzsrsJD8tGfNOHP9Jg9zCrSWfBt-_FT-bE", // African Search Console verification
   },
   appleWebApp: {
     capable: true,
