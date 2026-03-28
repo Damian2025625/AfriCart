@@ -18,9 +18,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "AfriCart - Nigerian Marketplace",
-  description: "Shop the best products in Nigeria",
+  title: "AfriCart - The Premium Nigerian Marketplace",
+  description: "Discover and shop the best authentic products, electronics, fashion, and groceries in Nigeria with fast and seamless delivery. Join AfriCart today for a premium online shopping experience.",
+  keywords: ["AfriCart", "Nigerian marketplace", "buy online Nigeria", "ecommerce Nigeria", "online shopping", "authentic Nigerian products", "fast delivery", "fashion", "electronics", "groceries"],
   applicationName: "AfriCart",
+  authors: [{ name: "AfriCart Team" }],
+  openGraph: {
+    title: "AfriCart - The Premium Nigerian Marketplace",
+    description: "Discover and shop the best authentic products across Nigeria with seamless delivery.",
+    url: "https://africart-three.vercel.app", // Replace with your actual domain
+    siteName: "AfriCart",
+    locale: "en_NG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AfriCart - The Premium Nigerian Marketplace",
+    description: "Discover and shop the best authentic products across Nigeria.",
+  },
+  verification: {
+    google: "PASTE_YOUR_GOOGLE_HTML_TAG_HERE", // Replace with the tag from Google Search Console
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
