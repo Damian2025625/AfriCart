@@ -25,8 +25,7 @@ export async function POST(request) {
       shopName,
       categories,
       shopDescription,
-      businessAddress, // ✅ NEW: Business Address
-      // ✅ NEW: Bank account fields
+      businessAddress,
       accountName,
       accountNumber,
       bankName,
@@ -100,7 +99,7 @@ export async function POST(request) {
         );
       }
 
-      // ✅ NEW: Validate bank account fields
+      // Validate bank account fields
       if (!accountName || !accountNumber || !bankName || !bankCode) {
         await User.findByIdAndDelete(user._id);
         return NextResponse.json(
@@ -117,7 +116,7 @@ export async function POST(request) {
         );
       }
 
-      // ✅ Create vendor profile WITH bank account
+      // Create vendor profile WITH bank account
       const vendor = await Vendor.create({
         userId: user._id,
         businessName: shopName,
@@ -128,7 +127,7 @@ export async function POST(request) {
         country,
         state,
         city,
-        // ✅ Save bank account details
+        // Save bank account details
         bankAccount: {
           accountName: accountName,
           accountNumber: accountNumber,
@@ -138,9 +137,9 @@ export async function POST(request) {
         isBankVerified: false, // Will be verified when creating subaccount
       });
 
-      console.log('✅ Vendor profile created with bank account');
+      console.log('Vendor profile created with bank account');
 
-      // ✅ Create Payment Subaccounts (async, don't block registration)
+      // Create Payment Subaccounts (async, don't block registration)
       setTimeout(async () => {
         try {
           await connectDB();
@@ -159,20 +158,20 @@ export async function POST(request) {
           const paymentAdapter = createPaymentAdapter();
           const provider = paymentAdapter.getProviderName();
           
-          console.log(`🔄 Verifying bank account via ${paymentAdapter.getDisplayName()}...`);
+          console.log(`Verifying bank account via ${paymentAdapter.getDisplayName()}...`);
           const verification = await paymentAdapter.verifyBankAccount(accountNumber, bankCode);
 
           if (verification.success) {
-            console.log('✅ Bank account verified:', verification.accountName);
+            console.log('Bank account verified:', verification.accountName);
             currentVendor.bankAccount.accountName = verification.accountName;
             currentVendor.isBankVerified = true;
             currentVendor.bankVerificationDate = new Date();
           } else {
-            console.warn('⚠️ Bank verification failed:', verification.message);
+            console.warn('Bank verification failed:', verification.message);
           }
 
           // ── STEP 2: Create Subaccount (Active Provider Only) ───────────
-          console.log(`🔄 Creating ${paymentAdapter.getDisplayName()} subaccount for ${shopName}...`);
+          console.log(`Creating ${paymentAdapter.getDisplayName()} subaccount for ${shopName}...`);
           
           try {
             const result = await paymentAdapter.createSubaccount({
@@ -219,22 +218,22 @@ export async function POST(request) {
               );
             }
             
-            console.log(`✅ ${paymentAdapter.getDisplayName()} subaccount created and saved in DB:`, result.subaccountCode);
+            console.log(`${paymentAdapter.getDisplayName()} subaccount created and saved in DB:`, result.subaccountCode);
           } catch (subErr) {
-            console.error(`❌ ${paymentAdapter.getDisplayName()} subaccount failed:`, subErr.message);
+            console.error(`${paymentAdapter.getDisplayName()} subaccount failed:`, subErr.message);
           }
 
-          console.log('✅ Vendor profile background setup complete');
+          console.log('Vendor profile background setup complete');
 
         } catch (error) {
-          console.error('❌ Critical error in vendor payment setup background task:', error.message);
+          console.error('Critical error in vendor payment setup background task:', error.message);
         }
       }, 3000); // Wait 3 seconds to ensure DB is consistent
 
       // Send vendor welcome email
       sendVendorWelcomeEmail(email, firstName, shopName)
-        .then(() => console.log('✅ Vendor welcome email sent'))
-        .catch((error) => console.error('❌ Failed to send vendor welcome email:', error));
+        .then(() => console.log('Vendor welcome email sent'))
+        .catch((error) => console.error('Failed to send vendor welcome email:', error));
 
     } else {
       // Create customer profile
@@ -245,12 +244,12 @@ export async function POST(request) {
         city,
       });
 
-      console.log('✅ Customer profile created');
+      console.log('Customer profile created');
 
       // Send customer welcome email
       sendWelcomeEmail(email, firstName)
-        .then(() => console.log('✅ Welcome email sent'))
-        .catch((error) => console.error('❌ Failed to send welcome email:', error));
+        .then(() => console.log('Welcome email sent'))
+        .catch((error) => console.error('Failed to send welcome email:', error));
     }
 
     return NextResponse.json(

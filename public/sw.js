@@ -30,7 +30,21 @@ if (workbox) {
     })
   );
 
-  // Offline fallback
+  // Cache HTML documents (pages) for offline viewing
+  workbox.routing.registerRoute(
+    ({request}) => request.destination === 'document',
+    new workbox.strategies.NetworkFirst({
+      cacheName: 'pages-cache',
+      plugins: [
+        new workbox.expiration.ExpirationPlugin({
+          maxEntries: 50, // Keep the last 50 visited pages in cache
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 Days
+        }),
+      ],
+    })
+  );
+
+  // Offline fallback (for pages not yet cached)
   const OFFLINE_URL = '/offline.html';
   workbox.precaching.precacheAndRoute([
     { url: OFFLINE_URL, revision: '1' }
