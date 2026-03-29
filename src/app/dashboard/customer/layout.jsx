@@ -382,7 +382,7 @@ export default function CustomerLayout({ children }) {
           <div
             className={`h-13 flex items-center border-b border-gray-200 gap-3 transition-all duration-300 ${sidebarCollapsed ? "lg:justify-center lg:px-2" : "px-4"}`}
           >
-            <div className="w-9 h-9 bg-gradient-to-br from-green-600 to-orange-600 rounded-xl flex text-sm items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+            <div className="w-9 h-9 bg-linear-to-br from-green-600 to-orange-600 rounded-xl flex text-sm items-center justify-center text-white font-bold shrink-0 overflow-hidden">
               {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
             </div>
             <span

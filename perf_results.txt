@@ -1,3 +1,0 @@
---- API Performance Test ---
-/api/categories: 2837.65ms (Status: 200, Success: true)
-/api/products/featured?limit=8: 126020.31ms (Status: 200, Success: true)

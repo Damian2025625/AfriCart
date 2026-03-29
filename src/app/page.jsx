@@ -387,7 +387,7 @@ export default function StorefrontPage() {
           {mobileOpen ? <FiX size={20}/> : <FiMenu size={20}/>}
         </button>
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-orange-500 rounded-xl flex items-center justify-center text-white font-black text-sm shadow">A</div>
+          <div className="w-8 h-8 bg-linear-to-br from-green-600 to-orange-500 rounded-xl flex items-center justify-center text-white font-black text-sm shadow">A</div>
           <span className="font-extrabold text-gray-900 dark:text-white tracking-tight">Afri<span className="text-orange-500">Cart</span></span>
         </Link>
         <div className="flex items-center gap-2">
@@ -454,14 +454,14 @@ export default function StorefrontPage() {
               )}
             </button>
             {isLoggedIn ? (
-              <Link href="/dashboard/customer" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-green-500 to-orange-500 text-white text-xs font-bold shadow hover:opacity-90 transition">
+              <Link href="/dashboard/customer" className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-linear-to-r from-green-500 to-orange-500 text-white text-xs font-bold shadow hover:opacity-90 transition">
                 <div className="w-5 h-5 bg-white/30 rounded-full flex items-center justify-center font-bold text-[10px] overflow-hidden">
                   {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
                 </div>
                 <span>{user?.firstName}</span>
               </Link>
             ) : (
-              <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-[10px] rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold shadow hover:shadow-lg hover:scale-[1.02] transition-all">
+              <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-[10px] rounded-lg bg-linear-to-r from-orange-500 to-orange-600 text-white font-bold shadow hover:shadow-lg hover:scale-[1.02] transition-all">
                 <FiLogIn size={14}/> Login
               </Link>
             )}
@@ -470,11 +470,11 @@ export default function StorefrontPage() {
       </div>
 
       {/* ── Sidebar ── */}
-      <div className={`fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 flex flex-col justify-between z-40 overflow-hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 ${collapsed ? "lg:w-[60px]" : "lg:w-58"} w-64`}>
+      <div className={`fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 flex flex-col justify-between z-40 overflow-y-auto scrollbar-thin ${mobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 ${collapsed ? "lg:w-[60px]" : "lg:w-58"} w-64`}>
         <div>
           {/* Logo */}
           <div className={`h-14 flex items-center border-b border-gray-200 dark:border-gray-700 gap-3 transition-all duration-300 ${collapsed ? "lg:justify-center lg:px-2" : "px-4"}`}>
-            <div className="w-9 h-9 bg-gradient-to-br from-green-600 to-orange-500 rounded-xl flex text-sm items-center justify-center text-white font-black shadow-md shrink-0">A</div>
+            <div className="w-9 h-9 bg-linear-to-br from-green-600 to-orange-500 rounded-xl flex text-sm items-center justify-center text-white font-black shadow-md shrink-0">A</div>
             <span className={`font-extrabold text-gray-900 dark:text-white text-lg tracking-tight whitespace-nowrap transition-all duration-300 ${collapsed ? "lg:hidden" : ""}`}>
               Afri<span className="text-orange-500">Cart</span>
             </span>
@@ -543,7 +543,7 @@ export default function StorefrontPage() {
 
           {/* Guest promo banner */}
           {!isLoggedIn && !collapsed && (
-            <div className="mx-3 mt-4 p-4 bg-gradient-to-br from-orange-500 to-green-500 rounded-2xl text-white text-center shadow-lg">
+            <div className="mx-3 mt-4 p-4 bg-linear-to-br from-orange-500 to-green-500 rounded-2xl text-white text-center shadow-lg">
               <p className="font-bold text-sm mb-1">Start Shopping!</p>
               <p className="text-[11px] text-white/80 mb-3">Create an account or login to place orders</p>
               <Link href="/register" className="block w-full py-2 bg-white text-orange-600 font-bold text-xs rounded-lg hover:bg-orange-50 transition">Create Account</Link>
@@ -565,7 +565,7 @@ export default function StorefrontPage() {
         {/* Bottom CTA */}
         <div className="p-3">
           {isLoggedIn ? (
-            <Link href="/dashboard/customer" className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-orange-500 text-white hover:opacity-90 transition ${collapsed ? "lg:justify-center" : ""}`}>
+            <Link href="/dashboard/customer" className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl bg-linear-to-r from-green-500 to-orange-500 text-white hover:opacity-90 transition ${collapsed ? "lg:justify-center" : ""}`}>
               <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden">
                 {user?.profilePicture ? <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" /> : initials}
               </div>
@@ -575,7 +575,7 @@ export default function StorefrontPage() {
               </div>
             </Link>
           ) : (
-            <Link href="/login" className={`flex items-center gap-3 w-full px-3 py-3 rounded-xl text-xs bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-sm hover:shadow-lg hover:scale-[1.01] transition-all ${collapsed ? "lg:justify-center" : "justify-center"}`}>
+            <Link href="/login" className={`flex items-center gap-3 w-full px-3 py-3 rounded-xl text-xs bg-linear-to-r from-orange-500 to-orange-600 text-white font-bold hover:shadow-lg hover:scale-[1.01] transition-all ${collapsed ? "lg:justify-center" : "justify-center"}`}>
               <FiLogIn className="shrink-0"/>
               <span className={`whitespace-nowrap ${collapsed ? "lg:hidden" : ""}`}>Login / Register</span>
             </Link>
@@ -588,7 +588,7 @@ export default function StorefrontPage() {
         <div className="p-4">
 
           {/* ── Academic Project Banner ── */}
-          <div className="w-full bg-gradient-to-r from-orange-500 to-green-600 text-white text-center py-3 px-4 rounded-xl md:rounded-2xl mb-6 font-extrabold text-[10px] md:text-sm shadow-md tracking-wider border border-white/20">
+          <div className="w-full bg-linear-to-r from-orange-500 to-green-600 text-white text-center py-3 px-4 rounded-xl md:rounded-2xl mb-6 font-extrabold text-[10px] md:text-sm shadow-md tracking-wider border border-white/20">
             PROJECT: DESIGN AND IMPLEMENTATION OF A MULTI-VENDOR E-COMMERCE PLATFORM FOR LOCAL SMEs
           </div>
 
@@ -644,7 +644,7 @@ export default function StorefrontPage() {
 
           {/* ── Not-logged-in banner ── */}
           {!isLoggedIn && (
-            <div className="mb-10 p-5 md:p-6 rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-green-500 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+            <div className="mb-10 p-5 md:p-6 rounded-2xl bg-linear-to-r from-orange-500 via-orange-400 to-green-500 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
               <div className="text-white text-center sm:text-left">
                 <p className="font-extrabold text-lg md:text-xl">Ready to start shopping?</p>
                 <p className="text-white/85 text-sm">Create a free account to add items to cart, track orders and get exclusive deals.</p>
@@ -674,7 +674,7 @@ export default function StorefrontPage() {
                     <Link key={cat._id} href={`/dashboard/customer/categories/${cat._id}`}
                       className="group relative h-36 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
                       <img src={s.bg} alt={cat.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
-                      <div className={`absolute inset-0 bg-gradient-to-br ${s.gradient}`}/>
+                      <div className={`absolute inset-0 bg-linear-to-br ${s.gradient}`}/>
                       <div className="relative h-full flex flex-col justify-between p-4">
                         <div className="self-end">
                           <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">{s.icon}</div>
@@ -735,7 +735,7 @@ export default function StorefrontPage() {
 
               {/* Mobile Filter Drawer logic stays same */}
               {showFilters && (
-                <div className="fixed inset-0 z-[60] lg:hidden">
+                <div className="fixed inset-0 z-60 lg:hidden">
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowFilters(false)}></div>
                   <div className="absolute bottom-0 inset-x-0 bg-white dark:bg-gray-900 rounded-t-3xl p-6 shadow-2xl">
                     <div className="flex items-center justify-between mb-6">
@@ -769,7 +769,7 @@ export default function StorefrontPage() {
 
                     <div className="flex gap-3">
                       <button onClick={handleClearFilters} className="flex-1 py-4 border border-gray-200 dark:border-gray-700 dark:text-white rounded-xl font-bold text-sm">Clear All</button>
-                      <button onClick={handleApplyFilters} className="flex-[2] py-4 bg-orange-500 text-white rounded-xl font-bold text-sm">Apply Filters</button>
+                      <button onClick={handleApplyFilters} className="flex-2 py-4 bg-orange-500 text-white rounded-xl font-bold text-sm">Apply Filters</button>
                     </div>
                   </div>
                 </div>

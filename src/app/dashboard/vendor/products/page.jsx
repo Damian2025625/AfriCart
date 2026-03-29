@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import localforage from "localforage";
 import {
   FiPackage,
   FiPlus,
@@ -73,13 +74,148 @@ export default function ProductsPage() {
   // Action Menu
   const [activeMenu, setActiveMenu] = useState(null);
 
+  // Offline State
+  const [isOffline, setIsOffline] = useState(false);
+
+  const convertImagesToBase64 = async (imageFiles) => {
+    const promises = imageFiles.map((file) => {
+      if (typeof file === "string") return Promise.resolve(file);
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
+    return Promise.all(promises);
+  };
+
+  const syncOfflineProducts = async () => {
+    try {
+      const queue = await localforage.getItem("offline-product-queue") || [];
+      if (queue.length === 0) return;
+
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      toast.loading(`Syncing ${queue.length} offline product(s)...`, { id: "sync-offline" });
+      
+      let successCount = 0;
+      const failedQueue = [];
+
+      for (const productData of queue) {
+        try {
+          const response = await fetch("/api/vendor/products", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(productData),
+          });
+
+          const data = await response.json();
+          if (response.ok && data.success) {
+            successCount++;
+          } else {
+            failedQueue.push(productData);
+          }
+        } catch (error) {
+          failedQueue.push(productData);
+        }
+      }
+
+      await localforage.setItem("offline-product-queue", failedQueue);
+
+      toast.dismiss("sync-offline");
+      if (successCount > 0) {
+        toast.success(`Successfully synced ${successCount} offline product(s)!`);
+        fetchProducts(); // Refresh list
+      }
+      if (failedQueue.length > 0) {
+        toast.error(`Failed to sync ${failedQueue.length} product(s). Will retry later.`);
+      }
+    } catch (error) {
+      console.error("Error syncing offline products:", error);
+    }
+  };
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      syncOfflineProducts();
+    };
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    if (typeof navigator !== "undefined") {
+      if (!navigator.onLine) {
+        setIsOffline(true);
+      } else {
+        syncOfflineProducts();
+      }
+    }
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load draft when modal opens
+  useEffect(() => {
+    if (showAddProductModal) {
+      const loadDraft = async () => {
+        try {
+          const draft = await localforage.getItem("vendor-product-draft");
+          if (draft) {
+             if (draft.formData) {
+               setFormData((prev) => ({ ...prev, ...draft.formData }));
+               if (draft.selectedImages && Array.isArray(draft.selectedImages)) {
+                 setSelectedImages(draft.selectedImages);
+               }
+             } else {
+               setFormData((prev) => ({ ...prev, ...draft }));
+             }
+             toast("Restored from offline draft", { icon: "📝" });
+          }
+        } catch (e) {
+          console.error("Failed to load draft", e);
+        }
+      };
+      loadDraft();
+    }
+  }, [showAddProductModal]);
+
+  // Auto-save draft whenever formData changes
+  useEffect(() => {
+    if (showAddProductModal) {
+      const timer = setTimeout(async () => {
+        // Skip saving empty draft right after modal reset
+        if (formData.name !== "") {
+          try {
+            const base64Images = await convertImagesToBase64(selectedImages);
+            await localforage.setItem("vendor-product-draft", {
+              formData,
+              selectedImages: base64Images
+            });
+          } catch(e) {
+            console.error("Auto-save failed", e);
+          }
+        }
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [formData, selectedImages, showAddProductModal]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     filterProducts();
-  }, [searchTerm, selectedCategory, selectedStatus, products]);
+  }, [searchTerm, selectedCategory, selectedStatus, products]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (formData.categoryId) {
@@ -88,21 +224,7 @@ export default function ProductsPage() {
       setModalSubcategories([]);
       setFormData((prev) => ({ ...prev, subcategoryId: "" }));
     }
-  }, [formData.categoryId]);
-
-  const convertImagesToBase64 = async (imageFiles) => {
-    const promises = imageFiles.map((file) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    });
-
-    return Promise.all(promises);
-  };
-
+  }, [formData.categoryId]); // eslint-disable-line react-hooks/exhaustive-deps
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -371,29 +493,60 @@ export default function ProductsPage() {
         features: formData.features.length > 0 ? formData.features : null,
       };
 
+      if (isOffline || !navigator.onLine) {
+        const queue = await localforage.getItem("offline-product-queue") || [];
+        queue.push(productData);
+        await localforage.setItem("offline-product-queue", queue);
+        
+        await localforage.removeItem("vendor-product-draft"); // Clear open draft
+        
+        toast.success("Saved to offline sync queue. Will automatically upload when you reconnect.");
+        setAddProductLoading(false);
+        closeModal();
+        return;
+      }
+
       toast.loading("Creating product...", { id: "product-create" });
 
-      const response = await fetch("/api/vendor/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(productData),
-      });
+      let response;
+      try {
+        response = await fetch("/api/vendor/products", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(productData),
+        });
+      } catch (fetchError) {
+        if (fetchError instanceof TypeError && (fetchError.message === "Failed to fetch" || fetchError.message.includes("NetworkError"))) {
+          const queue = await localforage.getItem("offline-product-queue") || [];
+          queue.push(productData);
+          await localforage.setItem("offline-product-queue", queue);
+          
+          await localforage.removeItem("vendor-product-draft"); // Clear open draft
+          
+          toast.success("Network unreachable. Saved to offline sync queue for auto-upload.", { id: "product-create" });
+          setAddProductLoading(false);
+          closeModal();
+          return;
+        }
+        throw fetchError;
+      }
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        toast.success("Product added successfully!");
+        toast.success("Product added successfully!", { id: "product-create" });
+        await localforage.removeItem("vendor-product-draft"); // Clear draft on success
         closeModal();
         fetchProducts();
       } else {
-        toast.error(data.message || "Failed to add product");
+        toast.error(data.message || "Failed to add product", { id: "product-create" });
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to add product");
+      toast.error("Failed to add product", { id: "product-create" });
     } finally {
       setAddProductLoading(false);
     }
@@ -1274,7 +1427,7 @@ export default function ProductsPage() {
                     {selectedImages.map((image, index) => (
                       <div key={index} className="relative group">
                         <img
-                          src={URL.createObjectURL(image)}
+                          src={typeof image === "string" ? image : URL.createObjectURL(image)}
                           alt="preview"
                           className="w-full h-32 object-cover rounded-lg border border-gray-200 shadow-sm"
                         />
@@ -1342,11 +1495,18 @@ export default function ProductsPage() {
                   className={`px-8 py-2.5 text-xs rounded-lg font-medium text-white flex items-center gap-3 transition-all ${
                     addProductLoading
                       ? "bg-gray-400 cursor-not-allowed"
+                      : isOffline
+                      ? "bg-yellow-500 hover:bg-yellow-600 shadow-md"
                       : "bg-linear-to-r from-orange-500 to-green-600 hover:shadow-xl"
                   }`}
                 >
                   {addProductLoading ? (
                     <>Adding...</>
+                  ) : isOffline ? (
+                    <>
+                      <FiZap />
+                      Save Offline Draft
+                    </>
                   ) : (
                     <>
                       <FiPackage />

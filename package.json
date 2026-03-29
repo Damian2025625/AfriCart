@@ -11,6 +11,7 @@
     "release-escrow": "node scripts/escrow-auto-release.js"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@google/generative-ai": "^0.24.1",
     "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.13.6",
@@ -20,6 +21,7 @@
     "firebase": "^12.7.0",
     "jsonwebtoken": "^9.0.3",
     "libphonenumber-js": "^1.12.33",
+    "localforage": "^1.10.0",
     "lucide-react": "^0.563.0",
     "mongoose": "^9.1.5",
     "next": "16.1.1",
